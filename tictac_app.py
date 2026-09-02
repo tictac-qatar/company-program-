@@ -5,7 +5,7 @@ import pandas as pd
 
 st.set_page_config(page_title="Tic Tac for Building Maintenance", layout="wide")
 
-# إزالة الخلفيات الداكنة بالكامل وتوحيد الخطوط باللون الكحلي الداكن
+# تعديل شامل وقوي لفرض الألوان الفاتحة والكحلي الداكن على جميع عناصر Streamlit و BaseWeb الداخلية
 st.markdown("""
     <style>
     /* فرض خلفية فاتحة ونصوص كحلي داكن على التطبيق بأكمله */
@@ -23,27 +23,28 @@ st.markdown("""
         font-weight: bold !important;
     }
     
-    /* حقول الإدخال والقوائم المنسدلة بخلفية بيضاء ونصوص كحلي داكن */
-    input, textarea, select {
+    /* حقول الإدخال */
+    input, textarea {
         background-color: #ffffff !important;
         color: #0b132b !important;
     }
     
-    div[data-baseweb="select"] > div {
+    /* إصلاح جذري للقوائم المنسدلة وحاويات BaseWeb لمنع الشاشة السوداء */
+    div[data-baseweb="select"] > div, div[data-baseweb="select"] {
         background-color: #ffffff !important;
         color: #0b132b !important;
     }
     
-    div[data-baseweb="menu"] {
+    div[data-baseweb="menu"], div[data-baseweb="popover"], ul[data-baseweb="menu"] {
         background-color: #ffffff !important;
     }
     
-    div[data-baseweb="menu"] div {
+    div[data-baseweb="menu"] div, ul[data-baseweb="menu"] li, span[data-baseweb="tag"] {
         color: #0b132b !important;
         background-color: #ffffff !important;
     }
     
-    /* القائمة الجانبية بلون فاتح ونصوص كحلي داكن */
+    /* القائمة الجانبية */
     section[data-testid="stSidebar"] {
         background-color: #f0ece1 !important;
         border-left: 1px solid #dcd6c9;
@@ -56,7 +57,7 @@ st.markdown("""
         background-color: #ffffff !important;
     }
     
-    /* الهيدر الرئيسي بخلفية فاتحة */
+    /* الهيدر الرئيسي */
     .main-header {
         background-color: #ffffff !important;
         color: #0b132b !important;
