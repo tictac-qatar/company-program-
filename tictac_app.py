@@ -152,7 +152,7 @@ def login():
     with mid:
         st.markdown("### تسجيل الدخول")
         u = st.text_input("اسم المستخدم")
-        p = st.text_input("كلمة المرور", type="password")
+        p = st.text_input("كلمة المرور", type="password", key="login_password_input")
         if st.button("دخول", use_container_width=True):
             row = q("SELECT * FROM users WHERE username=? AND password_hash=? AND active=1", (u.strip(), hash_password(p)))
             if not row.empty:
@@ -380,7 +380,7 @@ elif menu == "إدارة المستخدمين":
         a,b=st.columns(2)
         with a:
             username=st.text_input("اسم المستخدم *")
-            password=st.text_input("كلمة المرور *",type="password")
+            password=st.text_input("كلمة المرور *",type="password", key="create_user_password_input")
             full=st.text_input("الاسم الظاهر *")
         with b:
             account_type=st.selectbox("نوع الحساب",["مستخدم مخصص","مدير النظام"])
