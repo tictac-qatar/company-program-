@@ -5,7 +5,68 @@ import pandas as pd
 
 st.set_page_config(page_title="Tic Tac for Building Maintenance", layout="wide")
 
-# بيانات الدخول الجديدة الخاصة بك
+# تخصيص التصميم والخلفية لتتطابق مع الهوية البصرية (بيج دافئ، كحلي، برونزي)
+st.markdown("""
+    <style>
+    /* خلفية الصفحة العامة */
+    .stApp {
+        background-color: #f5f2eb;
+        color: #14213d;
+    }
+    
+    /* الهيدر الرئيسي */
+    .main-header {
+        background-color: #14213d;
+        color: #ffffff;
+        padding: 22px;
+        border-radius: 12px;
+        border-bottom: 5px solid #c59b27;
+        text-align: center;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .main-header h1 {
+        color: #c59b27;
+        font-size: 30px;
+        margin: 0;
+        font-weight: 700;
+    }
+    .main-header p {
+        color: #f5f2eb;
+        margin: 8px 0 0 0;
+        font-size: 16px;
+    }
+    
+    /* تنسيق صندوق تسجيل الدخول */
+    .login-box {
+        max-width: 420px;
+        margin: 60px auto;
+        padding: 30px;
+        background-color: #ffffff;
+        border-radius: 12px;
+        border-top: 6px solid #c59b27;
+        border: 1px solid #e6dec9;
+        text-align: center;
+        box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+    }
+    .login-box h2 {
+        color: #14213d;
+        margin-bottom: 10px;
+    }
+    .login-box p {
+        color: #555555;
+        margin-bottom: 20px;
+    }
+    
+    /* القائمة الجانبية */
+    section[data-testid="stSidebar"] {
+        background-color: #fdfcf7;
+        border-left: 1px solid #e6dec9;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# بيانات الدخول الخاصة بك
 USERS = {
     "Tictac.qatar": "Azoz@123"
 }
@@ -17,34 +78,24 @@ def check_login():
 
     if not st.session_state.logged_in:
         st.markdown("""
-            <style>
-            .login-box {
-                max-width: 400px;
-                margin: 50px auto;
-                padding: 20px;
-                background-color: #14213d;
-                border-radius: 10px;
-                border-top: 4px solid #c59b27;
-                text-align: center;
-                color: white;
-            }
-            </style>
             <div class="login-box">
-                <h2>تسجيل الدخول لنظام TIC TAC</h2>
-                <p>الرجاء إدخال بيانات الاعتماد للمتابعة</p>
+                <h2>TIC TAC</h2>
+                <p>نظام صيانة المباني - تسجيل الدخول</p>
             </div>
         """, unsafe_allow_html=True)
         
-        username = st.text_input("اسم المستخدم")
-        password = st.text_input("كلمة المرور", type="password")
-        
-        if st.button("دخول"):
-            if username in USERS and USERS[username] == password:
-                st.session_state.logged_in = True
-                st.session_state.username = username
-                st.rerun()
-            else:
-                st.error("اسم المستخدم أو كلمة المرور غير صحيحة.")
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            username = st.text_input("اسم المستخدم")
+            password = st.text_input("كلمة المرور", type="password")
+            
+            if st.button("تسجيل الدخول", use_container_width=True):
+                if username in USERS and USERS[username] == password:
+                    st.session_state.logged_in = True
+                    st.session_state.username = username
+                    st.rerun()
+                else:
+                    st.error("اسم المستخدم أو كلمة المرور غير صحيحة.")
         return False
     return True
 
@@ -54,26 +105,6 @@ if not check_login():
 # --- واجهة البرنامج بعد تسجيل الدخول ---
 
 st.markdown("""
-    <style>
-    .main-header {
-        background-color: #14213d;
-        color: #ffffff;
-        padding: 20px;
-        border-radius: 10px;
-        border-bottom: 4px solid #c59b27;
-        text-align: center;
-        margin-bottom: 20px;
-    }
-    .main-header h1 {
-        color: #c59b27;
-        font-size: 28px;
-        margin: 0;
-    }
-    .main-header p {
-        color: #e5e5e5;
-        margin: 5px 0 0 0;
-    }
-    </style>
     <div class="main-header">
         <h1>TIC TAC لصيانة المباني</h1>
         <p>نظام إدارة طلبات الصيانة، المهام، والمشتريات والحسابات</p>
