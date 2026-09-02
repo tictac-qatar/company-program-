@@ -140,7 +140,7 @@ UNITS = [
 ]
 
 # ------------------------------------------------------------
-# CSS - Force Pure White Background Everywhere (Direct Overrides)
+# CSS - Force Pure White Background Everywhere & White Sidebar Buttons
 # ------------------------------------------------------------
 st.markdown("""
 <style>
@@ -225,7 +225,7 @@ div[data-baseweb="textarea"] {
     -webkit-text-fill-color: #ffffff !important;
 }
 
-/* Custom Buttons Styling */
+/* Custom Buttons Styling (General) */
 div.stButton > button {
     background-color: #1f2937 !important;
     color: #ffffff !important;
@@ -238,6 +238,21 @@ div.stButton > button:hover {
     background-color: #d97706 !important;
     color: #ffffff !important;
     border-color: #d97706 !important;
+}
+
+/* Specific White Styling for Sidebar Buttons (like Logout) */
+section[data-testid="stSidebar"] div.stButton > button {
+    background-color: #ffffff !important;
+    color: #1f2937 !important;
+    -webkit-text-fill-color: #1f2937 !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 8px !important;
+    font-weight: bold !important;
+}
+section[data-testid="stSidebar"] div.stButton > button:hover {
+    background-color: #f3f4f6 !important;
+    color: #111827 !important;
+    border-color: #9ca3af !important;
 }
 
 /* App Header & Card Styles */
