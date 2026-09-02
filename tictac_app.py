@@ -15,8 +15,6 @@ try:
     from reportlab.lib import colors
     from reportlab.lib.pagesizes import A4, landscape
     from reportlab.lib.styles import getSampleStyleSheet
-    from reportlab.pdfbase import pdfmetrics
-    from reportlab.pdfbase.ttfonts import TTFont
     from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
     REPORTLAB_OK = True
 except ImportError:
@@ -27,7 +25,6 @@ DB_FILE = str(APP_DIR / "tictac_pro_v4.db")
 LOGO_FILE = APP_DIR / "IMG_7478.JPG"
 SESSION_SECRET = os.environ.get("TICTAC_SESSION_SECRET", "change-this-secret-in-production")
 
-# Brand palette sampled from the supplied TIC TAC logo.
 NAVY = "#17324D"
 NAVY_DARK = "#0E2236"
 COPPER = "#A96343"
@@ -43,33 +40,34 @@ DEPARTMENTS = ["الإدارة", "الصيانة التشغيلية", "الفن�
 CATEGORIES = ["مواد كهربائية", "مواد تكييف HVAC", "مواد سباكة وصرف", "مضخات وقطع غيار", "مكافحة وإنذار الحريق", "مولدات و UPS", "مصاعد", "BMS وتحكم", "CCTV وأمن", "شبكات واتصالات", "نجارة وأبواب", "ألومنيوم وزجاج", "دهانات", "جبس وأسقف", "عزل", "أعمال مدنية وبناء", "حدادة ولحام", "معدات مطابخ", "مواد نظافة", "معدات سلامة PPE", "قطع غيار عامة", "أخرى"]
 UNITS = ["قطعة", "متر", "متر مربع", "متر مكعب", "كيلو", "لتر", "جالون", "علبة", "كرتون", "رول", "طقم", "وحدة"]
 STATUSES = ["جديد", "تم التعيين", "قيد العمل", "بانتظار قطع غيار", "مكتمل", "ملغي"]
-MAIN_MENU = ["لوحة التحكم", "أوامر الصيانة", "الأصول والمعدات", "المواد وقطع الغيار", "حركة المخزون", "المشتريات", "المباني والعملاء", "العقود", "الموظفون", "الحضور والدوام", "الحسابات والمالية", "التقارير"]
-MENU_AREAS = {"لوحة التحكم":"dashboard", "أوامر الصيانة":"maintenance", "الأصول والمعدات":"maintenance", "المواد وقطع الغيار":"inventory", "حركة المخزون":"inventory", "المشتريات":"purchases", "المباني والعملاء":"buildings", "العقود":"contracts", "الموظفون":"hr", "الحضور والدوام":"hr", "الحسابات والمالية":"finance", "التقارير":"reports"}
-LEGACY_PERMISSIONS = {"مدير صيانة المباني": ["dashboard", "maintenance", "buildings", "contracts", "reports"], "مشرف صيانة": ["dashboard", "maintenance", "reports"], "مهندس صيانة": ["dashboard", "maintenance", "reports"], "مسؤول مشتريات": ["dashboard", "purchases", "inventory", "reports"], "أمين مستودع": ["dashboard", "inventory", "purchases", "reports"], "محاسب": ["dashboard", "finance", "contracts", "reports"], "مسؤول موارد بشرية": ["dashboard", "hr", "reports"]}
+
+MAIN_MENU = ["لوحة التحكم", "أوامر الصيانة", "المخزون", "المشتريات", "المباني والعملاء", "العقود"]
+MENU_AREAS = {"لوحة التحكم":"dashboard", "أوامر الصيانة":"maintenance", "المخزون":"inventory", "المشتريات":"purchases", "المباني والعملاء":"buildings", "العقود":"contracts"}
+LEGACY_PERMISSIONS = {"مدير صيانة المباني": ["dashboard", "maintenance", "buildings", "contracts"], "مشرف صيانة": ["dashboard", "maintenance"], "مهندس صيانة": ["dashboard", "maintenance"], "مسؤول مشتريات": ["dashboard", "purchases", "inventory"], "أمين مستودع": ["dashboard", "inventory", "purchases"], "محاسب": ["dashboard", "finance", "contracts"]}
 
 st.set_page_config(page_title="TIC TAC | صيانة المباني", page_icon="🏢", layout="wide", initial_sidebar_state="expanded")
 
 st.markdown(f"""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap');
 :root {{ --navy:{NAVY}; --navy-dark:{NAVY_DARK}; --copper:{COPPER}; --cream:{CREAM}; --ink:{INK}; }}
-html, body, [class*="css"] {{ font-family:'Cairo', Tahoma, Arial, sans-serif !important; }}
-.stApp {{ background:linear-gradient(135deg, #fff 0%, {CREAM} 100%); color:{INK}; direction:rtl; }}
+*, html, body, [class*="css"] {{ font-family:'Cairo', Tahoma, Arial, sans-serif !important; }}
+.stApp {{ background:linear-gradient(135deg, #fff 0%, {CREAM} 100%); color:{INK}; direction:rtl; font-family:'Cairo', sans-serif !important; }}
 .block-container {{ max-width:1500px; padding:1.4rem clamp(.7rem, 3vw, 3rem) 3rem; }}
-section[data-testid="stSidebar"] {{ background:linear-gradient(180deg, {NAVY_DARK}, {NAVY}); border-left:4px solid {COPPER}; }}
-section[data-testid="stSidebar"] * {{ color:#fff !important; }}
+section[data-testid="stSidebar"] {{ background:linear-gradient(180deg, {NAVY_DARK}, {NAVY}); border-left:4px solid {COPPER}; font-family:'Cairo', sans-serif !important; }}
+section[data-testid="stSidebar"] * {{ color:#fff !important; font-family:'Cairo', sans-serif !important; }}
 [data-testid="stHeader"] {{ background:transparent; }}
 .logo-card {{ background:{WHITE}; border:1px solid #e7ded4; border-top:6px solid {COPPER}; border-radius:18px; padding:18px 24px; display:flex; align-items:center; gap:22px; box-shadow:0 8px 24px rgba(23,50,77,.08); margin-bottom:22px; }}
 .logo-card img {{ width:110px; max-height:88px; object-fit:contain; border-radius:10px; }}
-.logo-title {{ color:{NAVY}; font-size:clamp(1.35rem,3vw,2.35rem); font-weight:800; line-height:1.35; }}
-.logo-subtitle {{ color:{COPPER}; font-size:.95rem; font-weight:700; }}
+.logo-title {{ color:{NAVY}; font-size:clamp(1.35rem,3vw,2.35rem); font-weight:800; line-height:1.35; font-family:'Cairo', sans-serif !important; }}
+.logo-subtitle {{ color:{COPPER}; font-size:.95rem; font-weight:700; font-family:'Cairo', sans-serif !important; }}
 .metric-card {{ background:#fff; border-right:5px solid {COPPER}; border-radius:14px; padding:15px; min-height:105px; box-shadow:0 5px 18px rgba(23,50,77,.07); }}
-.metric-label {{ color:{MUTED}; font-size:.9rem; }} .metric-value {{ color:{NAVY}; font-size:1.7rem; font-weight:800; margin-top:5px; }}
-div.stButton > button, .stDownloadButton > button {{ background:{NAVY} !important; color:#fff !important; border:0 !important; border-radius:9px !important; min-height:2.55rem; font-weight:700; }}
+.metric-label {{ color:{MUTED}; font-size:.9rem; font-family:'Cairo', sans-serif !important; }} .metric-value {{ color:{NAVY}; font-size:1.7rem; font-weight:800; margin-top:5px; font-family:'Cairo', sans-serif !important; }}
+div.stButton > button, .stDownloadButton > button {{ background:{NAVY} !important; color:#fff !important; border:0 !important; border-radius:9px !important; min-height:2.55rem; font-weight:700; font-family:'Cairo', sans-serif !important; }}
 div.stButton > button:hover, .stDownloadButton > button:hover {{ background:{COPPER} !important; }}
-input, textarea, [data-baseweb="select"] > div {{ border-radius:8px !important; }}
-[data-testid="stDataFrame"] {{ border:1px solid #e5e7eb; border-radius:10px; }}
-.stCode, code, pre, textarea, input {{ color: {INK} !important; }}
+input, textarea, [data-baseweb="select"] > div {{ border-radius:8px !important; font-family:'Cairo', sans-serif !important; }}
+[data-testid="stDataFrame"] {{ border:1px solid #e5e7eb; border-radius:10px; font-family:'Cairo', sans-serif !important; }}
+.stCode, code, pre, textarea, input {{ color: {INK} !important; font-family:'Cairo', sans-serif !important; }}
 .stCodeBlock {{ background-color: {WHITE} !important; color: {INK} !important; border: 1px solid #e7ded4; }}
 @media (max-width: 700px) {{ .block-container {{ padding:.7rem .55rem 2rem; }} .logo-card {{ flex-direction:column; text-align:center; padding:14px; }} .logo-card img {{ width:150px; }} [data-testid="stHorizontalBlock"] {{ flex-wrap:wrap; gap:.5rem; }} [data-testid="stHorizontalBlock"] > div {{ min-width:calc(50% - .5rem) !important; flex:1 1 calc(50% - .5rem) !important; }} section[data-testid="stSidebar"] {{ width: min(85vw, 320px); }} .stDataFrame {{ font-size:.75rem; }} }}
 </style>
@@ -219,9 +217,9 @@ with st.sidebar:
 
 if menu == "لوحة التحكم":
     st.title("لوحة التحكم")
-    vals = [q("SELECT COUNT(*) n FROM tasks").iloc[0,0], q("SELECT COUNT(*) n FROM tasks WHERE status NOT IN ('مكتمل','ملغي')").iloc[0,0], q("SELECT COUNT(*) n FROM buildings").iloc[0,0], q("SELECT COUNT(*) n FROM assets").iloc[0,0], q("SELECT COUNT(*) n FROM materials WHERE quantity<=min_quantity").iloc[0,0]]
-    cols = st.columns(5)
-    for c, label, val in zip(cols, ["إجمالي البلاغات", "بلاغات مفتوحة", "المباني", "الأصول", "مخزون منخفض"], vals): c.markdown(metric(label, val), unsafe_allow_html=True)
+    vals = [q("SELECT COUNT(*) n FROM tasks").iloc[0,0], q("SELECT COUNT(*) n FROM tasks WHERE status NOT IN ('مكتمل','ملغي')").iloc[0,0], q("SELECT COUNT(*) n FROM buildings").iloc[0,0], q("SELECT COUNT(*) n FROM materials WHERE quantity<=min_quantity").iloc[0,0]]
+    cols = st.columns(4)
+    for c, label, val in zip(cols, ["إجمالي البلاغات", "بلاغات مفتوحة", "المباني", "مخزون منخفض"], vals): c.markdown(metric(label, val), unsafe_allow_html=True)
     st.markdown("### البلاغات المفتوحة ذات الأولوية")
     df = q("SELECT ticket_no AS 'البلاغ', priority AS 'الأولوية', status AS 'الحالة', description AS 'الوصف', report_date AS 'التاريخ' FROM tasks WHERE status NOT IN ('مكتمل','ملغي') ORDER BY id DESC LIMIT 20")
     st.dataframe(df, use_container_width=True, hide_index=True); exports(df, "open_tasks", "البلاغات المفتوحة")
@@ -244,47 +242,34 @@ elif menu == "أوامر الصيانة":
     df=q("SELECT t.ticket_no AS 'البلاغ', b.name AS 'المبنى', t.system_type AS 'التخصص', t.priority AS 'الأولوية', t.status AS 'الحالة', t.report_date AS 'التاريخ', t.description AS 'الوصف' FROM tasks t LEFT JOIN buildings b ON b.id=t.building_id ORDER BY t.id DESC")
     st.dataframe(df,use_container_width=True,hide_index=True); exports(df,"maintenance_tasks","أوامر الصيانة")
 
-elif menu == "الأصول والمعدات":
-    st.title("الأصول والمعدات")
-    if not has_access(user,"maintenance"): st.error("لا تملك صلاحية الوصول لهذا القسم."); st.stop()
-    buildings=q("SELECT id,name FROM buildings"); bm={r['name']:r['id'] for _,r in buildings.iterrows()}; assets=q("SELECT id,asset_code,name FROM assets"); am={f"{r['asset_code']} - {r['name']}":r['id'] for _,r in assets.iterrows()}
-    tab1,tab2=st.tabs(["إضافة أصل", "قائمة الأصول"])
+elif menu == "المخزون":
+    st.title("إدارة المخزون وقطع الغيار")
+    if not has_access(user,"inventory"): st.error("لا تملك صلاحية الوصول لهذا القسم."); st.stop()
+    
+    tab1, tab2 = st.tabs(["قائمة المواد وقطع الغيار", "حركة المخزون"])
+    
     with tab1:
-        with st.form("asset"):
+        with st.form("material"):
             a,b=st.columns(2)
-            with a: code=st.text_input("كود الأصل *"); name=st.text_input("اسم الأصل *"); bn=st.selectbox("المبنى",list(bm) or ["بدون"]); system=st.selectbox("النظام",SPECIALTIES); loc=st.text_input("الموقع"); critical=st.selectbox("الأهمية",["منخفض","متوسط","حرج"])
-            with b: manufacturer=st.text_input("الشركة المصنعة"); model=st.text_input("الموديل"); serial=st.text_input("الرقم التسلسلي"); install=st.date_input("تاريخ التركيب",date.today()); warranty=st.date_input("انتهاء الضمان",date.today()+timedelta(days=365)); status=st.selectbox("الحالة",["يعمل","متوقف","تحت الإصلاح","خارج الخدمة"])
-            notes=st.text_area("ملاحظات"); submitted=st.form_submit_button("حفظ الأصل",use_container_width=True)
-            if submitted and code.strip() and name.strip():
-                try: x("INSERT INTO assets(building_id,asset_code,name,system_type,location,manufacturer,model,serial_no,install_date,warranty_date,criticality,status,notes) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",(bm.get(bn),code,name,system,loc,manufacturer,model,serial,install.isoformat(),warranty.isoformat(),critical,status,notes)); st.success("تم حفظ الأصل")
-                except sqlite3.IntegrityError: st.error("كود الأصل مستخدم مسبقاً")
+            with a: code=st.text_input("كود المادة *"); name=st.text_input("الاسم العربي *"); english=st.text_input("الاسم الإنجليزي"); category=st.selectbox("التصنيف",CATEGORIES); unit=st.selectbox("الوحدة",UNITS); qty=st.number_input("الرصيد",0.0); minimum=st.number_input("الحد الأدنى",0.0)
+            with b: reorder=st.number_input("حد إعادة الطلب",0.0); price=st.number_input("سعر الشراء",0.0); cost=st.number_input("متوسط التكلفة",0.0); supplier=st.text_input("المورد"); storage=st.text_input("المستودع / الرف"); part=st.text_input("رقم القطعة / الموديل")
+            notes=st.text_area("ملاحظات"); submit=st.form_submit_button("حفظ المادة",use_container_width=True)
+            if submit and code.strip() and name.strip():
+                try: x("INSERT INTO materials(item_code,arabic_name,english_name,category,unit,quantity,min_quantity,reorder_point,purchase_price,avg_cost,supplier,storage_location,part_no,notes) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",(code,name,english,category,unit,qty,minimum,reorder,price,cost,supplier,storage,part,notes)); st.success("تم حفظ المادة")
+                except sqlite3.IntegrityError: st.error("كود المادة موجود مسبقاً")
+        df_mat=q("SELECT item_code AS 'الكود',arabic_name AS 'المادة',category AS 'التصنيف',unit AS 'الوحدة',quantity AS 'الرصيد',min_quantity AS 'الحد الأدنى',supplier AS 'المورد',storage_location AS 'الموقع' FROM materials ORDER BY id DESC")
+        st.dataframe(df_mat,use_container_width=True,hide_index=True); exports(df_mat,"materials","المواد وقطع الغيار")
+
     with tab2:
-        df=q("SELECT a.asset_code AS 'الكود',a.name AS 'الأصل',b.name AS 'المبنى',a.system_type AS 'النظام',a.location AS 'الموقع',a.criticality AS 'الأهمية',a.status AS 'الحالة',a.warranty_date AS 'الضمان' FROM assets a LEFT JOIN buildings b ON b.id=a.building_id ORDER BY a.id DESC"); st.dataframe(df,use_container_width=True,hide_index=True); exports(df,"assets","الأصول")
-
-elif menu == "المواد وقطع الغيار":
-    st.title("المواد وقطع الغيار")
-    if not has_access(user,"inventory"): st.error("لا تملك صلاحية الوصول لهذا القسم."); st.stop()
-    with st.form("material"):
-        a,b=st.columns(2)
-        with a: code=st.text_input("كود المادة *"); name=st.text_input("الاسم العربي *"); english=st.text_input("الاسم الإنجليزي"); category=st.selectbox("التصنيف",CATEGORIES); unit=st.selectbox("الوحدة",UNITS); qty=st.number_input("الرصيد",0.0); minimum=st.number_input("الحد الأدنى",0.0)
-        with b: reorder=st.number_input("حد إعادة الطلب",0.0); price=st.number_input("سعر الشراء",0.0); cost=st.number_input("متوسط التكلفة",0.0); supplier=st.text_input("المورد"); storage=st.text_input("المستودع / الرف"); part=st.text_input("رقم القطعة / الموديل")
-        notes=st.text_area("ملاحظات"); submit=st.form_submit_button("حفظ المادة",use_container_width=True)
-        if submit and code.strip() and name.strip():
-            try: x("INSERT INTO materials(item_code,arabic_name,english_name,category,unit,quantity,min_quantity,reorder_point,purchase_price,avg_cost,supplier,storage_location,part_no,notes) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",(code,name,english,category,unit,qty,minimum,reorder,price,cost,supplier,storage,part,notes)); st.success("تم حفظ المادة")
-            except sqlite3.IntegrityError: st.error("كود المادة موجود مسبقاً")
-    df=q("SELECT item_code AS 'الكود',arabic_name AS 'المادة',category AS 'التصنيف',unit AS 'الوحدة',quantity AS 'الرصيد',min_quantity AS 'الحد الأدنى',supplier AS 'المورد',storage_location AS 'الموقع' FROM materials ORDER BY id DESC"); st.dataframe(df,use_container_width=True,hide_index=True); exports(df,"materials","المواد وقطع الغيار")
-
-elif menu == "حركة المخزون":
-    st.title("حركة المخزون")
-    if not has_access(user,"inventory"): st.error("لا تملك صلاحية الوصول لهذا القسم."); st.stop()
-    mats=q("SELECT id,item_code,arabic_name,quantity FROM materials"); mm={f"{r['item_code']} - {r['arabic_name']} (الرصيد {r['quantity']})":r['id'] for _,r in mats.iterrows()}
-    with st.form("transaction"):
-        selected=st.selectbox("المادة",list(mm) or ["لا توجد مواد"]); typ=st.selectbox("نوع الحركة",["إضافة شراء","صرف لأمر صيانة","مرتجع","تسوية زيادة","تسوية نقص"]); qty=st.number_input("الكمية",0.01); cost=st.number_input("سعر الوحدة",0.0); ref=st.text_input("المرجع"); notes=st.text_area("ملاحظات")
-        if st.form_submit_button("تنفيذ الحركة",use_container_width=True) and mm:
-            mid=mm[selected]; old=float(q("SELECT quantity FROM materials WHERE id=?",(mid,)).iloc[0,0]); new=old+qty if typ in ["إضافة شراء","مرتجع","تسوية زيادة"] else old-qty
-            if new<0: st.error("الرصيد غير كافٍ")
-            else: x("UPDATE materials SET quantity=? WHERE id=?",(new,mid)); x("INSERT INTO material_transactions(material_id,transaction_type,quantity,unit_cost,reference,date,notes) VALUES(?,?,?,?,?,?,?)",(mid,typ,qty,cost,ref,date.today().isoformat(),notes)); st.success(f"تم تحديث الرصيد إلى {new}")
-    df=q("SELECT mt.transaction_type AS 'الحركة',m.arabic_name AS 'المادة',mt.quantity AS 'الكمية',mt.unit_cost AS 'السعر',mt.reference AS 'المرجع',mt.date AS 'التاريخ' FROM material_transactions mt LEFT JOIN materials m ON m.id=mt.material_id ORDER BY mt.id DESC"); st.dataframe(df,use_container_width=True,hide_index=True); exports(df,"inventory_transactions","حركة المخزون")
+        mats=q("SELECT id,item_code,arabic_name,quantity FROM materials"); mm={f"{r['item_code']} - {r['arabic_name']} (الرصيد {r['quantity']})":r['id'] for _,r in mats.iterrows()}
+        with st.form("transaction"):
+            selected=st.selectbox("المادة",list(mm) or ["لا توجد مواد"]); typ=st.selectbox("نوع الحركة",["إضافة شراء","صرف لأمر صيانة","مرتجع","تسوية زيادة","تسوية نقص"]); qty_t=st.number_input("الكمية",0.01); cost_t=st.number_input("سعر الوحدة",0.0); ref=st.text_input("المرجع"); notes_t=st.text_area("ملاحظات الحركة")
+            if st.form_submit_button("تنفيذ الحركة",use_container_width=True) and mm:
+                mid=mm[selected]; old=float(q("SELECT quantity FROM materials WHERE id=?",(mid,)).iloc[0,0]); new=old+qty_t if typ in ["إضافة شراء","مرتجع","تسوية زيادة"] else old-qty_t
+                if new<0: st.error("الرصيد غير كافٍ")
+                else: x("UPDATE materials SET quantity=? WHERE id=?",(new,mid)); x("INSERT INTO material_transactions(material_id,transaction_type,quantity,unit_cost,reference,date,notes) VALUES(?,?,?,?,?,?,?)",(mid,typ,qty_t,cost_t,ref,date.today().isoformat(),notes_t)); st.success(f"تم تحديث الرصيد إلى {new}")
+        df_trans=q("SELECT mt.transaction_type AS 'الحركة',m.arabic_name AS 'المادة',mt.quantity AS 'الكمية',mt.unit_cost AS 'السعر',mt.reference AS 'المرجع',mt.date AS 'التاريخ' FROM material_transactions mt LEFT JOIN materials m ON m.id=mt.material_id ORDER BY mt.id DESC")
+        st.dataframe(df_trans,use_container_width=True,hide_index=True); exports(df_trans,"inventory_transactions","حركة المخزون")
 
 elif menu == "المشتريات":
     st.title("المشتريات")
@@ -312,7 +297,7 @@ elif menu == "المباني والعملاء":
 
 elif menu == "العقود":
     st.title("عقود الصيانة")
-    if not has_access(user,"maintenance") and not has_access(user,"finance"): st.error("لا تملك الصلاحية."); st.stop()
+    if not has_access(user,"maintenance") and not has_access(user,"purchases"): st.error("لا تملك الصلاحية."); st.stop()
     buildings=q("SELECT id,name FROM buildings"); bm={r['name']:r['id'] for _,r in buildings.iterrows()}
     with st.form("contract"):
         a,b=st.columns(2)
@@ -324,50 +309,9 @@ elif menu == "العقود":
             except sqlite3.IntegrityError: st.error("رقم العقد موجود")
     report_page("العقود","SELECT c.contract_no AS 'العقد',b.name AS 'المبنى',c.contract_type AS 'النوع',c.value AS 'القيمة',c.start_date AS 'البداية',c.end_date AS 'النهاية',c.status AS 'الحالة' FROM contracts c LEFT JOIN buildings b ON b.id=c.building_id ORDER BY c.id DESC","contracts")
 
-elif menu == "الموظفون":
-    st.title("الموظفون")
-    if not has_access(user,"hr"): st.error("لا تملك الصلاحية."); st.stop()
-    with st.form("employee"):
-        a,b=st.columns(2)
-        with a: name=st.text_input("اسم الموظف *"); nid=st.text_input("الرقم الشخصي"); phone=st.text_input("الهاتف"); role=st.selectbox("الوظيفة",ROLES); dept=st.selectbox("القسم",DEPARTMENTS)
-        with b: hire=st.date_input("تاريخ التعيين",date.today()); salary=st.number_input("الراتب",0.0); status=st.selectbox("الحالة",["على رأس العمل","إجازة","موقوف","منتهي الخدمة"]); skills=st.text_input("المهارات")
-        notes=st.text_area("ملاحظات"); submit=st.form_submit_button("حفظ الموظف",use_container_width=True)
-        if submit and name.strip(): x("INSERT INTO employees(name,national_id,phone,role,department,hire_date,salary,status,skills,notes) VALUES(?,?,?,?,?,?,?,?,?,?)",(name,nid,phone,role,dept,hire.isoformat(),salary,status,skills,notes)); st.success("تم الحفظ")
-    report_page("الموظفون","SELECT name AS 'الموظف',role AS 'الوظيفة',department AS 'القسم',phone AS 'الهاتف',salary AS 'الراتب',status AS 'الحالة' FROM employees ORDER BY id DESC","employees")
-
-elif menu == "الحضور والدوام":
-    st.title("الحضور والدوام")
-    if not has_access(user,"hr"): st.error("لا تملك الصلاحية."); st.stop()
-    emps=q("SELECT id,name,role FROM employees WHERE status='على رأس العمل'"); em={f"{r['name']} ({r['role']})":r['id'] for _,r in emps.iterrows()}
-    with st.form("attendance"):
-        en=st.selectbox("الموظف",list(em) or ["لا يوجد"]); status=st.selectbox("الحالة",["حاضر","غائب","إجازة","مرضي","مهمة خارجية","تأخير"]); d=st.date_input("التاريخ",date.today()); hours=st.number_input("ساعات العمل",0.0,24.0,8.0); notes=st.text_input("ملاحظات")
-        if st.form_submit_button("تسجيل الحضور",use_container_width=True) and em:
-            try: x("INSERT INTO attendance(emp_id,status,date,work_hours,notes) VALUES(?,?,?,?,?)",(em[en],status,d.isoformat(),hours,notes)); st.success("تم التسجيل")
-            except sqlite3.IntegrityError: st.error("تم التسجيل مسبقاً لهذا الموظف والتاريخ")
-    report_page("تقرير الحضور","SELECT e.name AS 'الموظف',a.status AS 'الحالة',a.date AS 'التاريخ',a.work_hours AS 'الساعات',a.notes AS 'ملاحظات' FROM attendance a LEFT JOIN employees e ON e.id=a.emp_id ORDER BY a.date DESC","attendance")
-
-elif menu == "الحسابات والمالية":
-    st.title("الحسابات والمالية")
-    if not has_access(user,"finance"): st.error("لا تملك الصلاحية."); st.stop()
-    with st.form("finance"):
-        a,b=st.columns(2)
-        with a: typ=st.selectbox("النوع",["إيراد","مصروف"]); cat=st.selectbox("التصنيف",["عقود صيانة","رواتب وأجور","شراء مواد وقطع غيار","مصاريف تشغيلية","إصلاحات طارئة","أخرى"]); desc=st.text_input("البيان *")
-        with b: amount=st.number_input("المبلغ",0.0); d=st.date_input("التاريخ",date.today()); ref=st.text_input("المرجع")
-        if st.form_submit_button("حفظ المعاملة",use_container_width=True) and desc.strip() and amount>0: x("INSERT INTO finance(type,category,description,amount,date,reference) VALUES(?,?,?,?,?,?)",(typ,cat,desc,amount,d.isoformat(),ref)); st.success("تم الحفظ")
-    rev=float(q("SELECT COALESCE(SUM(amount),0) n FROM finance WHERE type='إيراد'").iloc[0,0]); exp=float(q("SELECT COALESCE(SUM(amount),0) n FROM finance WHERE type='مصروف'").iloc[0,0]); c1,c2,c3=st.columns(3); c1.markdown(metric("الإيرادات",f"{rev:,.2f} ر.ق"),unsafe_allow_html=True); c2.markdown(metric("المصروفات",f"{exp:,.2f} ر.ق"),unsafe_allow_html=True); c3.markdown(metric("صافي الربح",f"{rev-exp:,.2f} ر.ق"),unsafe_allow_html=True)
-    report_page("السجل المالي","SELECT type AS 'النوع',category AS 'التصنيف',description AS 'البيان',amount AS 'المبلغ',date AS 'التاريخ',reference AS 'المرجع' FROM finance ORDER BY date DESC","finance")
-
-elif menu == "التقارير":
-    st.title("التقارير والتصدير")
-    if not has_access(user,"maintenance") and not has_access(user,"finance") and not has_access(user,"inventory") and not has_access(user,"hr"): st.error("لا تملك الصلاحية."); st.stop()
-    choice=st.selectbox("نوع التقرير",["أوامر الصيانة","الأصول","المواد","حركة المخزون","المشتريات","المباني","العقود","الموظفون","الحضور","المالية"])
-    reports={"أوامر الصيانة":("SELECT * FROM tasks ORDER BY id DESC","report_tasks"),"الأصول":("SELECT * FROM assets ORDER BY id DESC","report_assets"),"المواد":("SELECT * FROM materials ORDER BY id DESC","report_materials"),"حركة المخزون":("SELECT * FROM material_transactions ORDER BY id DESC","report_inventory"),"المشتريات":("SELECT * FROM purchases ORDER BY id DESC","report_purchases"),"المباني":("SELECT * FROM buildings ORDER BY id DESC","report_buildings"),"العقود":("SELECT * FROM contracts ORDER BY id DESC","report_contracts"),"الموظفون":("SELECT * FROM employees ORDER BY id DESC","report_employees"),"الحضور":("SELECT * FROM attendance ORDER BY id DESC","report_attendance"),"المالية":("SELECT * FROM finance ORDER BY id DESC","report_finance")}
-    sql,name=reports[choice]; df=q(sql); st.dataframe(df,use_container_width=True,hide_index=True); exports(df,name,choice)
-
 elif menu == "إدارة المستخدمين":
     st.title("إدارة المستخدمين والصلاحيات")
     if user["role"] != "مدير النظام": st.error("هذه الصفحة للمدير فقط."); st.stop()
-    emps=q("SELECT id,name,role FROM employees"); em={f"{r['name']} ({r['role']})":r['id'] for _,r in emps.iterrows()}
     st.caption("حدد الأقسام التي يستطيع المستخدم رؤيتها من القائمة الرئيسية. مدير النظام يملك جميع الصلاحيات تلقائياً.")
     with st.form("user"):
         a,b=st.columns(2)
@@ -377,7 +321,6 @@ elif menu == "إدارة المستخدمين":
             full=st.text_input("الاسم الظاهر *")
         with b:
             account_type=st.selectbox("نوع الحساب",["مستخدم مخصص","مدير النظام"])
-            employee=st.selectbox("الموظف المرتبط",["بدون"]+list(em))
             selected_sections=st.multiselect("صلاحيات القائمة الرئيسية", MAIN_MENU, default=["لوحة التحكم"])
         if st.form_submit_button("إضافة المستخدم",use_container_width=True):
             if not username.strip() or not password or not full.strip():
@@ -387,14 +330,13 @@ elif menu == "إدارة المستخدمين":
             else:
                 permissions="all" if account_type == "مدير النظام" else "|".join(dict.fromkeys([MENU_AREAS[s] for s in selected_sections] + ["dashboard"]))
                 try:
-                    x("INSERT INTO users(username,password_hash,full_name,role,employee_id,permissions,active,created_at) VALUES(?,?,?,?,?,?,1,?)",(username.strip(),hash_password(password),full,account_type,em.get(employee),permissions,datetime.now().isoformat()))
+                    x("INSERT INTO users(username,password_hash,full_name,role,permissions,active,created_at) VALUES(?,?,?,?,?,1,?)",(username.strip(),hash_password(password),full,account_type,permissions,datetime.now().isoformat()))
                     st.success("تمت إضافة المستخدم والصلاحيات بنجاح.")
                 except sqlite3.IntegrityError: st.error("اسم المستخدم موجود مسبقاً.")
 
     st.markdown("### المستخدمون المسجلون وإدارة الحسابات")
     users_list = q("SELECT id, username, full_name, role, active FROM users ORDER BY id DESC")
     
-    # Header row for table/list view
     header_cols = st.columns([2, 2, 1, 1, 1, 1])
     header_cols[0].markdown("**اسم المستخدم**")
     header_cols[1].markdown("**الاسم الظاهر**")
