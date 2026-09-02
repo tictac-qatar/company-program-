@@ -147,12 +147,19 @@ def logout():
 def login():
     user = current_user()
     if user: return user
-    st.markdown('<div class="logo-card"><div class="logo-title">TIC TAC<br><span class="logo-subtitle">نظام إدارة خدمات وصيانة عقود العملاء الخارجية</span></div></div>', unsafe_allow_html=True)
+    
+    # عرض اللوجو في صفحة تسجيل الدخول أعلى الكارد الرئيسي
+    img_html = ""
+    if LOGO_FILE.exists():
+        img_html = f'<div style="text-align: center; margin-bottom: 15px;"><img src="data:image/jpeg;base64,{base64.b64encode(LOGO_FILE.read_bytes()).decode()}" style="max-height: 100px; border-radius: 10px;"></div>'
+    
+    st.markdown(f'{img_html}<div class="logo-card"><div class="logo-title">TIC TAC<br><span class="logo-subtitle">نظام إدارة خدمات وصيانة عقود العملاء الخارجية</span></div></div>', unsafe_allow_html=True)
+    
     _, mid, _ = st.columns([1, 2, 1])
     with mid:
         st.markdown("### تسجيل الدخول")
-        u = st.text_input("اسم المستخدم")
-        p = st.text_input("كلمة المرور", type="password", key="login_password_input")
+        u = st.text_input("اسم المستخدم", key="login_username_field")
+        p = st.text_input("كلمة المرور", type="password", key="login_password_secure_field")
         if st.button("دخول", use_container_width=True):
             row = q("SELECT * FROM users WHERE username=? AND password_hash=? AND active=1", (u.strip(), hash_password(p)))
             if not row.empty:
@@ -324,12 +331,12 @@ elif menu == "عقود الصيانة للعملاء":
     with st.form("contract"):
         a,b=st.columns(2)
         with a: no=st.text_input("رقم العقد مع العميل *"); bn=st.selectbox("موقع العميل المرتبط بالعقد",list(bm) or ["بدون"]); typ=st.selectbox("نوع عقد الصيانة",["صيانة شاملة قطع غيار وخدمة","صيانة وقائية دورية فقط","إدارة مرافق متكاملة FM","حسب الطلب Call-out"]); value=st.number_input("قيمة العقد السنوية / الإجمالية",0.0)
-        with b: start=st.date_input("تاريخ بداية العقد",date.today()); end=st.date_input("تاريخ نهاية العقد",date.today()+timedelta(days=365)); status=st.selectbox("حالة العقد",["ساري","منتهي","قيد التجديد","مفسوخ / ملغي"])
+        with b: start=st.date_input("تاريخ بداية العقد",date.today()); end=st.date_input("تاريخ نهاية العقد",date.today()+timedelta(days=365)); status=st.selectbox("الحالة العقد",["ساري","منتهي","قيد التجديد","مفسوخ / ملغي"])
         services=st.text_area("نطاق الأعمال والخدمات المشمولة بالعقد"); notes=st.text_area("شروط الدفع والملاحظات المالية"); submit=st.form_submit_button("حفظ وإصدار العقد",use_container_width=True)
         if submit and no.strip():
             try: cid=x("INSERT INTO contracts(building_id,contract_no,contract_type,value,services_included,start_date,end_date,status,notes) VALUES(?,?,?,?,?,?,?,?,?)",(bm.get(bn),no,typ,value,services,start.isoformat(),end.isoformat(),status,notes)); x("INSERT INTO finance(type,category,description,amount,date,reference,contract_id) VALUES('إيراد','عقود صيانة عملاء',?,?,?,?,?)",(f"عقد صيانة عميل {no}",value,start.isoformat(),no,cid)); st.success("تم حفظ العقد وتسجيل إيراداته المتوقعة بالميزانية")
             except sqlite3.IntegrityError: st.error("رقم العقد مسجل مسبقاً")
-    report_page("سجل عقود العملاء","SELECT c.contract_no AS 'رقم العقد',b.client AS 'العميل',b.name AS 'الموقع',c.contract_type AS 'النوع',c.value AS 'القيمة',c.start_date AS 'البداية',c.end_date AS 'النهاية',c.status AS 'الحالة' FROM contracts c LEFT JOIN buildings b ON b.id=c.building_id ORDER BY c.id DESC","client_contracts")
+    report_page("سجل عقود العملاء","SELECT c.contract_no AS 'رقم العقد',b.client AS 'العميل',b.name AS 'الموقع',c.contract_type AS 'النوع',c.value AS 'القيمة',c.start_date AS 'البداية',c.end_date AS 'النهاية',c.status AS 'الحالة' FROM contracts c LEFT JOIN buildings b ON b.id=c.building_id ORDER BY id DESC","client_contracts")
 
 elif menu == "الموظفون":
     st.title("فريق العمل والكادر الفني والإداري")
@@ -380,7 +387,7 @@ elif menu == "إدارة المستخدمين":
         a,b=st.columns(2)
         with a:
             username=st.text_input("اسم المستخدم *")
-            password=st.text_input("كلمة المرور *",type="password", key="create_user_password_input")
+            password=st.text_input("كلمة المرور *",type="password", key="create_user_password_secure_field")
             full=st.text_input("الاسم الظاهر *")
         with b:
             account_type=st.selectbox("نوع الحساب",["مستخدم مخصص","مدير النظام"])
