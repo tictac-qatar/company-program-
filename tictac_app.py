@@ -5,17 +5,17 @@ import pandas as pd
 
 st.set_page_config(page_title="Tic Tac for Building Maintenance", layout="wide")
 
-# تنسيق عام شامل لإجبار جميع النصوص والخطوط على أن تكون واضحة وقوية
+# فرض الوضع الفاتح وتعديل جميع ألوان الحقول والقوائم المنسدلة لتجنب مشكلة الشاشة السوداء في الجوال
 st.markdown("""
     <style>
-    /* خلفية التطبيق العامة */
+    /* فرض خلفية فاتحة ونصوص داكنة على التطبيق بأكمله */
     .stApp {
         background-color: #f7f4ed !important;
         color: #0b132b !important;
         font-family: Tahoma, sans-serif !important;
     }
     
-    /* إجبار كافة النصوص والعناوين والتسميات على أن تكون داكنة وواضحة جداً */
+    /* إجبار كافة النصوص والعناوين والتسميات على الوضوح */
     h1, h2, h3, h4, h5, h6, label, p, span, div, 
     .stSelectbox label, .stTextInput label, .stTextArea label, .stNumberInput label, 
     .stDateInput label, .stRadio label, .stCheckbox label {
@@ -23,14 +23,33 @@ st.markdown("""
         font-weight: bold !important;
     }
     
-    /* القائمة الجانبية: خلفية كحلي داكن ونصوص بيضاء ساطعة 100% للوضوح التام */
+    /* إصلاح خلفية ونصوص حقول الإدخال والقوائم المنسدلة في الجوال */
+    input, textarea, select {
+        background-color: #ffffff !important;
+        color: #0b132b !important;
+    }
+    
+    div[data-baseweb="select"] > div {
+        background-color: #ffffff !important;
+        color: #0b132b !important;
+    }
+    
+    div[data-baseweb="menu"] {
+        background-color: #ffffff !important;
+    }
+    
+    div[data-baseweb="menu"] div {
+        color: #0b132b !important;
+        background-color: #ffffff !important;
+    }
+    
+    /* القائمة الجانبية */
     section[data-testid="stSidebar"] {
         background-color: #14213d !important;
     }
     section[data-testid="stSidebar"] * {
         color: #ffffff !important;
     }
-    /* حقول الإدخال داخل القائمة الجانبية */
     section[data-testid="stSidebar"] input {
         color: #0b132b !important;
         background-color: #ffffff !important;
@@ -77,13 +96,6 @@ st.markdown("""
         border: 1px solid #dcd6c9 !important;
         box-shadow: 0 3px 8px rgba(0,0,0,0.06) !important;
         margin-bottom: 25px !important;
-    }
-    
-    /* تحسين ألوان عناصر الإدخال والنصوص بداخله */
-    .stTextInput input, .stTextArea textarea, .stSelectbox div[data-baseweb="select"] {
-        background-color: #ffffff !important;
-        color: #0b132b !important;
-        border: 1px solid #b0a896 !important;
     }
     </style>
 """, unsafe_allow_html=True)
