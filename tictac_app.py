@@ -175,25 +175,29 @@ h1, h2, h3, h4, h5, h6, label, p, span, div, .stMarkdown, .stText {
     -webkit-text-fill-color: #111827 !important;
 }
 
-/* Force all input fields, textareas, and select elements to be white */
+/* Force ALL input fields, textareas, select elements, and base-inputs to be pure white */
 input, textarea, select,
 [data-baseweb="input"] input,
 [data-baseweb="base-input"] input,
 .stTextInput input,
 .stPasswordInput input,
-.stTextArea textarea {
+.stTextArea textarea,
+div[data-baseweb="input"],
+div[data-baseweb="base-input"],
+div[data-baseweb="textarea"],
+div[data-baseweb="select"] > div {
     background-color: #ffffff !important;
+    background: #ffffff !important;
     color: #111827 !important;
     -webkit-text-fill-color: #111827 !important;
     border-color: #d1d5db !important;
 }
 
-[data-baseweb="input"],
-[data-baseweb="base-input"],
-[data-baseweb="select"] > div,
-div[data-baseweb="textarea"] {
-    background-color: #ffffff !important;
+/* BaseWeb Select Container fixes */
+[data-baseweb="select"] span, [data-baseweb="select"] div {
+    background-color: transparent !important;
     color: #111827 !important;
+    -webkit-text-fill-color: #111827 !important;
 }
 
 /* Popovers, menus, and dropdowns background correction */
@@ -213,7 +217,7 @@ div[data-baseweb="textarea"] {
 [data-baseweb="menu"] *,
 [role="listbox"] *,
 [role="option"] * {
-    background-color: transparent !important;
+    background-color: #ffffff !important;
     color: #111827 !important;
     -webkit-text-fill-color: #111827 !important;
 }
