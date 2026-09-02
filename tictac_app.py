@@ -129,14 +129,13 @@ def init_db():
         if "permissions" not in user_columns:
             c.execute("ALTER TABLE users ADD COLUMN permissions TEXT DEFAULT ''")
         
-        # التأكد من وجود الحساب وإضافته أو تحديثه تلقائياً ليعمل فوراً دون مسح القاعدة
         existing_user = c.execute("SELECT id FROM users WHERE username='Tictac.qatar'").fetchone()
         if not existing_user:
             c.execute("INSERT INTO users(username,password_hash,full_name,role,permissions,active,created_at) VALUES(?,?,?,?,?,?,?)", 
                       ("Tictac.qatar", hash_password("Azoz@123"), "مدير النظام", "مدير النظام", "all", 1, datetime.now().isoformat()))
         else:
             c.execute("UPDATE users SET password_hash=?, active=1 WHERE username='Tictac.qatar'", (hash_password("Azoz@123"),))
-        c.connection.commit()
+        c.commit()
 
 
 def q(sql, params=()):
