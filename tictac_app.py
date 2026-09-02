@@ -140,16 +140,27 @@ UNITS = [
 ]
 
 # ------------------------------------------------------------
-# CSS & JS - Force Absolute Light Theme & Override Dark Mode
+# CSS - Force Pure White Background Everywhere
 # ------------------------------------------------------------
 st.markdown("""
 <style>
-/* Force Light Mode variables & color schemes globally */
-html, body, [data-testid="stAppViewContainer"], .stApp {
+/* Force absolute white background across all main containers and app views */
+html, body, [data-testid="stAppViewContainer"], .stApp, 
+div.block-container, div[data-testid="stVerticalBlock"] {
     color-scheme: light !important;
     background-color: #ffffff !important;
     color: #111827 !important;
     font-family: Tahoma, Arial, sans-serif !important;
+}
+
+/* Force Sidebar to be strictly white */
+section[data-testid="stSidebar"], section[data-testid="stSidebar"] > div {
+    background-color: #ffffff !important;
+    border-right: 1px solid #e5e7eb !important;
+}
+section[data-testid="stSidebar"] * {
+    color: #1f2937 !important;
+    -webkit-text-fill-color: #1f2937 !important;
 }
 
 /* Force all text elements to be dark and clear */
@@ -223,18 +234,8 @@ div.stButton > button:hover {
     border-color: #d97706 !important;
 }
 
-/* Sidebar */
-section[data-testid="stSidebar"] {
-    background-color: #f3f4f6 !important;
-    border-right: 1px solid #e5e7eb;
-}
-section[data-testid="stSidebar"] * {
-    color: #1f2937 !important;
-    -webkit-text-fill-color: #1f2937 !important;
-}
-
 .main-header {
-    background-color: #f9fafb;
+    background-color: #ffffff;
     padding: 18px 24px;
     border-radius: 14px;
     border: 1px solid #e5e7eb;
@@ -249,7 +250,7 @@ section[data-testid="stSidebar"] * {
     margin-bottom: 8px;
 }
 .card {
-    background-color: #f9fafb;
+    background-color: #ffffff;
     padding: 20px;
     border-radius: 12px;
     border: 1px solid #e5e7eb;
@@ -1138,7 +1139,7 @@ elif menu == "📊 التقارير":
         df = query_df("SELECT * FROM employees ORDER BY id DESC")
         st.dataframe(df, use_container_width=True)
         if not df.empty:
-            csv_download(df, "tict_report_employees.csv")
+            csv_download(df, "tictac_report_employees.csv")
 
     elif report == "الحضور والغياب":
         df = query_df("SELECT * FROM attendance ORDER BY date DESC,id DESC")
