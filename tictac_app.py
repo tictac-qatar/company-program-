@@ -207,20 +207,17 @@ def pdf_bytes(df, title):
     table = Table(data, repeatRows=1); table.setStyle(TableStyle([("BACKGROUND", (0,0), (-1,0), colors.HexColor(NAVY)), ("TEXTCOLOR", (0,0), (-1,0), colors.white), ("GRID", (0,0), (-1,-1), .25, colors.HexColor("#D0D5DD")), ("FONTSIZE", (0,0), (-1,-1), 7), ("VALIGN", (0,0), (-1,-1), "MIDDLE")]))
     doc.build([Paragraph(title, styles["Title"]), Spacer(1, 12), table]); return bio.getvalue()
 
-def report_page(title, sql, filename, params=()):
-    st.subheader(title); df = q(sql, params); st.dataframe(df, use_container_width=True, hide_index=True); exports(df, filename, title)
-
-# دالة ذكية لعرض الجدول مع زر حذف خاص بالمدير فقط في الأقسام
+# دالة ذكية لعرض الجدول بعد تعبئة البيانات مع زر حذف خاص بالمدير فقط
 def admin_managed_table(title, sql, table_name, id_col, label_col, filename, params=()):
     st.subheader(title)
     df = q(sql, params)
     st.dataframe(df, use_container_width=True, hide_index=True)
     exports(df, filename, title)
     
-    # ميزة الحذف المخصصة لمدير النظام فقط في أسفل الجدول لكل قسم
+    # ميزة الحذف المخصصة لمدير النظام فقط في أسفل الجدول
     if user.get("role") == "مدير النظام" and not df.empty:
-        with st.expander("🛠️ لوحة تحكم المدير: حذف سجل محدد"):
-            records_map = {f"ID ({row[id_col]}): {str(row[label_col])[:50]}": int(row[id_col]) for _, row in df.iterrows()}
+        with st.expander(f"🛠️ لوحة تحكم مدير النظام: حذف سجل من ({title})"):
+            records_map = {f"معرف رقم ({row[id_col]}): {str(row[label_col])[:50]}": int(row[id_col]) for _, row in df.iterrows()}
             selected_record = st.selectbox("اختر السجل المراد حذفه نهائياً", list(records_map.keys()), key=f"del_sel_{table_name}")
             if st.button("حذف السجل المحدد نهائياً", key=f"del_btn_{table_name}", use_container_width=True):
                 rec_id = records_map[selected_record]
@@ -492,7 +489,7 @@ elif menu == "إدارة المستخدمين":
             
             new_act = 0 if row["active"] == 1 else 1
             act_text = "تعطيل" if row["active"] == 1 else "تفعيل"
-            if cols[5].button(act_text, key=f"toggle_{uid_val}", use_container_width=True):
+            if cols[5].button(act_text, key=f"toggle_{uid_val}", use_content_width=True):
                 x("UPDATE users SET active=? WHERE id=?", (new_act, uid_val,))
                 st.rerun()
         else:
@@ -500,4 +497,4 @@ elif menu == "إدارة المستخدمين":
             cols[5].text("-")
 
 st.sidebar.markdown("---")
-st.sidebar.caption("TIC TAC • External Services & Facilities • v4.1")
+st.sidebar.caption("TIC TAC • External Services & Facilities • v4.2")
