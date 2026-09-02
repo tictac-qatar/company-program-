@@ -21,7 +21,7 @@ except ImportError:
     REPORTLAB_OK = False
 
 APP_DIR = Path(__file__).resolve().parent
-DB_FILE = str(APP_DIR / "tictac_pro_v4.db")
+DB_FILE = str(APP_DIR / "tictac_pro_v5.db")
 LOGO_FILE = APP_DIR / "IMG_7478.JPG"
 SESSION_SECRET = os.environ.get("TICTAC_SESSION_SECRET", "change-this-secret-in-production")
 
@@ -40,6 +40,32 @@ DEPARTMENTS = ["الإدارة", "الoperations التشغيلية", "الفن�
 CATEGORIES = ["مواد كهربائية", "مواد تكييف HVAC", "مواد سباكة وصرف", "مضخات وقطع غيار", "مكافحة وإنذار الحريق", "مولدات و UPS", "مصاعد", "BMS وتحكم", "CCTV وأمن", "شبكات واتصالات", "نجارة وأبواب", "ألومنيوم وزجاج", "دهانات", "جبس وأسقف", "عزل", "أعمال مدنية وبناء", "حدادة ولحام", "معدات مطابخ", "مواد نظافة", "معدات سلامة PPE", "قطع غيار عامة", "أخرى"]
 UNITS = ["قطعة", "متر", "متر مربع", "متر مكعب", "كيلو", "لتر", "جالون", "علبة", "كرتون", "رول", "طقم", "وحدة"]
 STATUSES = ["جديد", "تم التعميد / الإسناد", "قيد التنفيذ بالموقع", "بانتظار قطع غيار", "مكتمل ومسلم للعميل", "ملغي"]
+
+# خيارات التصنيفات المالية المرتبطة ديناميكياً بنوع المعاملة (إيراد / مصروف) لشركة صيانة مباني وعقود خارجية
+FINANCE_CATEGORIES = {
+    "إيراد": [
+        "إيرادات عقود الصيانة الدورية السنوية",
+        "إيرادات فواتير بلاغات الطوارئ (Call-out)",
+        "إيرادات أعمال الإصلاح التصحيحي الإضافية",
+        "إيرادات عقود إدارة المرافق المتكاملة (FM)",
+        "إيرادات توريد وتركيب معدات جديدة للعميل",
+        "أرباح تعويضات تأمين أو غرامات تشغيلية",
+        "إيرادات أخرى متفرقة"
+    ],
+    "مصروف": [
+        "رواتب وأجور الفنيين والمهندسين الميدانيين",
+        "مشتريات مواد وقطع غيار لمشاريع العملاء",
+        "أجور مقاولي الباطن والخدمات المتخصصة",
+        "مصاريف النقل والوقود لسيارات الصيانة",
+        "إيجارات المخازن ومقرات التشغيل",
+        "رسوم تراخيص واختبارات فحص الأنظمة المعتمدة",
+        "صيانة أدوات وعدد الورش والمعدات الثقيلة",
+        "رسوم استخراج تصاريح العمل ومعدات السلامة (PPE)",
+        "فواتير المرافق العامة (كهرباء ومياه وصيانة مقرات)",
+        "مصاريف إدارية وعمومية",
+        "أخرى"
+    ]
+}
 
 MAIN_MENU = ["لوحة التحكم", "طلبات الخدمة وأوامر الصيانة", "الأصول والمعدات", "المواد وقطع الغيار", "حركة المخزون", "المشتريات", "مواقع العملاء", "عقود الصيانة للعملاء", "الموظفون", "الحضور والدوام", "الحسابات والفواتير", "التقارير"]
 MENU_AREAS = {"لوحة التحكم":"dashboard", "طلبات الخدمة وأوامر الصيانة":"maintenance", "الأصول والمعدات":"maintenance", "المواد وقطع الغيار":"inventory", "حركة المخزون":"inventory", "المشتريات":"purchases", "مواقع العملاء":"buildings", "عقود الصيانة للعملاء":"contracts", "الموظفون":"hr", "الحضور والدوام":"hr", "الحسابات والفواتير":"finance", "التقارير":"reports"}
@@ -303,7 +329,7 @@ elif menu == "المشتريات":
         notes=st.text_area("ملاحظات الشراء"); submit=st.form_submit_button("حفظ أمر الشراء الخارجي",use_container_width=True)
         if submit and item.strip() and supplier.strip():
             po=f"PO-{datetime.now().strftime('%Y%m%d%H%M%S')}-{secrets.token_hex(2).upper()}"; total=qty*price+tax; x("INSERT INTO purchases(po_no,item_name,category,quantity,unit,price,tax,total_amount,supplier,invoice_no,date,status,notes) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",(po,item,category,qty,unit,price,tax,total,supplier,invoice,date.today().isoformat(),status,notes));
-            if status not in ["مسودة","ملغي"]: x("INSERT INTO finance(type,category,description,amount,date,reference) VALUES('مصروف','شراء مواد وقطع غيار مشاريع العملاء',?,?,?,?)",(f"أمر شراء {po} - {item}",total,date.today().isoformat(),po))
+            if status not in ["مسودة","ملغي"]: x("INSERT INTO finance(type,category,description,amount,date,reference) VALUES('مصروف','مشتريات مواد وقطع غيار لمشاريع العملاء',?,?,?,?)",(f"أمر شراء {po} - {item}",total,date.today().isoformat(),po))
             st.success(f"تم اعتماد وحفظ أمر الشراء برقم {po}")
     report_page("سجل مشتريات الشركة","SELECT po_no AS 'رقم PO',item_name AS 'الصنف',quantity AS 'الكمية',total_amount AS 'الإجمالي',supplier AS 'المورد',date AS 'التاريخ',status AS 'الحالة' FROM purchases ORDER BY id DESC","purchases_report")
 
@@ -327,7 +353,10 @@ elif menu == "عقود الصيانة للعملاء":
         with b: start=st.date_input("تاريخ بداية العقد",date.today()); end=st.date_input("تاريخ نهاية العقد",date.today()+timedelta(days=365)); status=st.selectbox("حالة العقد",["ساري","منتهي","قيد التجديد","مفسوخ / ملغي"])
         services=st.text_area("نطاق الأعمال والخدمات المشمولة بالعقد"); notes=st.text_area("شروط الدفع والملاحظات المالية"); submit=st.form_submit_button("حفظ وإصدار العقد",use_container_width=True)
         if submit and no.strip():
-            try: cid=x("INSERT INTO contracts(building_id,contract_no,contract_type,value,services_included,start_date,end_date,status,notes) VALUES(?,?,?,?,?,?,?,?,?)",(bm.get(bn),no,typ,value,services,start.isoformat(),end.isoformat(),status,notes)); x("INSERT INTO finance(type,category,description,amount,date,reference,contract_id) VALUES('إيراد','عقود صيانة عملاء',?,?,?,?,?)",(f"عقد صيانة عميل {no}",value,start.isoformat(),no,cid)); st.success("تم حفظ العقد وتسجيل إيراداته المتوقعة بالميزانية")
+            try: 
+                cid=x("INSERT INTO contracts(building_id,contract_no,contract_type,value,services_included,start_date,end_date,status,notes) VALUES(?,?,?,?,?,?,?,?,?)",(bm.get(bn),no,typ,value,services,start.isoformat(),end.isoformat(),status,notes))
+                x("INSERT INTO finance(type,category,description,amount,date,reference,contract_id) VALUES('إيراد','إيرادات عقود الصيانة الدورية السنوية',?,?,?,?,?)",(f"عقد صيانة عميل {no}",value,start.isoformat(),no,cid))
+                st.success("تم حفظ العقد وتسجيل إيراداته المتوقعة بالميزانية")
             except sqlite3.IntegrityError: st.error("رقم العقد مسجل مسبقاً")
     report_page("سجل عقود العملاء","SELECT c.contract_no AS 'رقم العقد',b.client AS 'العميل',b.name AS 'الموقع',c.contract_type AS 'النوع',c.value AS 'القيمة',c.start_date AS 'البداية',c.end_date AS 'النهاية',c.status AS 'الحالة' FROM contracts c LEFT JOIN buildings b ON b.id=c.building_id ORDER BY c.id DESC","client_contracts")
 
@@ -356,13 +385,32 @@ elif menu == "الحضور والدوام":
 elif menu == "الحسابات والفواتير":
     st.title("الحسابات المالية والفواتير وإيرادات العقود")
     if not has_access(user,"finance"): st.error("لا تملك الصلاحية."); st.stop()
+    
+    # ربط نوع المعاملة المالية بالتصنيف المالي الخاص بشركات صيانة المباني
     with st.form("finance"):
         a,b=st.columns(2)
-        with a: typ=st.selectbox("نوع المعاملة المالية",["إيراد","مصروف"]); cat=st.selectbox("التصنيف المالي",["عقود صيانة عملاء","فواتير طلبات خدمة خارجية","رواتب وأجور الفنيين","شراء مواد وقطع غيار مشاريع","مصاريف تشغيلية ونقليات","إصلاحات ومقاولين باطن","أخرى"]); desc=st.text_input("بيان المعاملة المالية *")
-        with b: amount=st.number_input("المبلغ (ر.ق / ر.س)",0.0); d=st.date_input("تاريخ المعاملة",date.today()); ref=st.text_input("رقم الفاتورة أو المرجع المرتبط")
-        if st.form_submit_button("تسجيل المعاملة بالحسابات",use_container_width=True) and desc.strip() and amount>0: x("INSERT INTO finance(type,category,description,amount,date,reference) VALUES(?,?,?,?,?,?)",(typ,cat,desc,amount,d.isoformat(),ref)); st.success("تم حفظ المعاملة بنجاح")
-    rev=float(q("SELECT COALESCE(SUM(amount),0) n FROM finance WHERE type='إيراد'").iloc[0,0]); exp=float(q("SELECT COALESCE(SUM(amount),0) n FROM finance WHERE type='مصروف'").iloc[0,0]); c1,c2,c3=st.columns(3); c1.markdown(metric("إجمالي إيرادات العقود والخدمات",f"{rev:,.2f} ر.ق"),unsafe_allow_html=True); c2.markdown(metric("إجمالي المصروفات التشغيلية",f"{exp:,.2f} ر.ق"),unsafe_allow_html=True); c3.markdown(metric("صافي أرباح الشركة",f"{rev-exp:,.2f} ر.ق"),unsafe_allow_html=True)
-    report_page("السجل المالي الشامل","SELECT type AS 'النوع',category AS 'التصنيف',description AS 'البيان',amount AS 'المبلغ',date AS 'التاريخ',reference AS 'المرجع' FROM finance ORDER BY date DESC","finance_report")
+        with a: 
+            typ = st.selectbox("نوع المعاملة المالية", ["إيراد", "مصروف"])
+            # جلب التصنيفات المرتبطة تلقائياً بناءً على نوع المعاملة المختار
+            cat = st.selectbox("التصنيف المالي المخصص", FINANCE_CATEGORIES[typ])
+            desc = st.text_input("بيان المعاملة المالية *")
+        with b: 
+            amount = st.number_input("المبلغ (ر.ق / ر.س)", 0.0)
+            d = st.date_input("تاريخ المعاملة", date.today())
+            ref = st.text_input("رقم الفاتورة أو المرجع المرتبط")
+            
+        if st.form_submit_button("تسجيل المعاملة بالحسابات", use_container_width=True) and desc.strip() and amount > 0: 
+            x("INSERT INTO finance(type,category,description,amount,date,reference) VALUES(?,?,?,?,?,?)", (typ, cat, desc, amount, d.isoformat(), ref))
+            st.success("تم حفظ المعاملة بنجاح")
+
+    rev = float(q("SELECT COALESCE(SUM(amount),0) n FROM finance WHERE type='إيراد'").iloc[0,0])
+    exp = float(q("SELECT COALESCE(SUM(amount),0) n FROM finance WHERE type='مصروف'").iloc[0,0])
+    c1, c2, c3 = st.columns(3)
+    c1.markdown(metric("إجمالي إيرادات العقود والخدمات", f"{rev:,.2f} ر.ق"), unsafe_allow_html=True)
+    c2.markdown(metric("إجمالي المصروفات التشغيلية", f"{exp:,.2f} ر.ق"), unsafe_allow_html=True)
+    c3.markdown(metric("صافي أرباح الشركة", f"{rev-exp:,.2f} ر.ق"), unsafe_allow_html=True)
+    
+    report_page("السجل المالي الشامل", "SELECT type AS 'النوع', category AS 'التصنيف', description AS 'البيان', amount AS 'المبلغ', date AS 'التاريخ', reference AS 'المرجع' FROM finance ORDER BY date DESC", "finance_report")
 
 elif menu == "التقارير":
     st.title("التقارير الإدارية والمالية الشاملة")
@@ -436,4 +484,4 @@ elif menu == "إدارة المستخدمين":
             cols[5].text("-")
 
 st.sidebar.markdown("---")
-st.sidebar.caption("TIC TAC • External Services & Facilities • v4.0")
+st.sidebar.caption("TIC TAC • External Services & Facilities • v4.1")
