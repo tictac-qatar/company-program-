@@ -391,36 +391,43 @@ elif menu == "إدارة المستخدمين":
                     st.success("تمت إضافة المستخدم والصلاحيات بنجاح.")
                 except sqlite3.IntegrityError: st.error("اسم المستخدم موجود مسبقاً.")
 
-    users=q("SELECT id,username,full_name,role,active FROM users ORDER BY id DESC")
-    st.markdown("### المستخدمون المسجلون")
-    display=users.rename(columns={"username":"المستخدم","full_name":"الاسم","role":"نوع الحساب","active":"الحالة"}).copy()
-    display["الحالة"]=display["الحالة"].map({1:"نشط",0:"ملغى / معطل"})
-    st.dataframe(display.drop(columns=["id"]),use_container_width=True,hide_index=True)
-    exports(display.drop(columns=["id"]),"users","المستخدمون")
+    st.markdown("### المستخدمون المسجلون وإدارة الحسابات")
+    users_list = q("SELECT id, username, full_name, role, active FROM users ORDER BY id DESC")
+    
+    # Header row for table/list view
+    header_cols = st.columns([2, 2, 1, 1, 1, 1])
+    header_cols[0].markdown("**اسم المستخدم**")
+    header_cols[1].markdown("**الاسم الظاهر**")
+    header_cols[2].markdown("**نوع الحساب**")
+    header_cols[3].markdown("**الحالة**")
+    header_cols[4].markdown("**إزالة نهائية**")
+    header_cols[5].markdown("**تعطيل / تفعيل**")
+    st.markdown("---")
 
-    names={f"{r['username']} — {r['full_name']}":int(r['id']) for _,r in users.iterrows() if int(r['id']) != int(user['id'])}
-    if names:
-        st.markdown("### إدارة حالة المستخدمين (تعطيل / تفعيل / إزالة نهائية)")
-        selected_user=st.selectbox("اختر المستخدم",list(names))
-        chosen_id=names[selected_user]
-        chosen_active=int(users.loc[users["id"]==chosen_id,"active"].iloc[0])
+    for _, row in users_list.iterrows():
+        uid_val = int(row["id"])
+        is_me = (uid_val == int(user["id"]))
         
-        c1, c2, c3 = st.columns(3)
-        with c1:
-            if st.button("تعطيل المستخدم", use_container_width=True, disabled=not bool(chosen_active)):
-                x("UPDATE users SET active=0 WHERE id=?", (chosen_id,))
-                st.success("تم تعطيل المستخدم بنجاح.")
+        cols = st.columns([2, 2, 1, 1, 1, 1])
+        cols[0].text(row["username"])
+        cols[1].text(row["full_name"])
+        cols[2].text(row["role"])
+        cols[3].text("نشط" if row["active"] == 1 else "معطل")
+        
+        if not is_me:
+            if cols[4].button("حذف نهائي", key=f"del_{uid_val}", use_container_width=True):
+                x("DELETE FROM users WHERE id=?", (uid_val,))
+                st.success(f"تم حذف المستخدم {row['username']} بنجاح.")
                 st.rerun()
-        with c2:
-            if st.button("إعادة تفعيل", use_container_width=True, disabled=bool(chosen_active)):
-                x("UPDATE users SET active=1 WHERE id=?", (chosen_id,))
-                st.success("تمت إعادة تفعيل المستخدم.")
+            
+            new_act = 0 if row["active"] == 1 else 1
+            act_text = "تعطيل" if row["active"] == 1 else "تفعيل"
+            if cols[5].button(act_text, key=f"toggle_{uid_val}", use_container_width=True):
+                x("UPDATE users SET active=? WHERE id=?", (new_act, uid_val,))
                 st.rerun()
-        with c3:
-            if st.button("إزالة / حذف نهائي", use_container_width=True):
-                x("DELETE FROM users WHERE id=?", (chosen_id,))
-                st.success("تم حذف المستخدم نهائياً من قاعدة البيانات.")
-                st.rerun()
+        else:
+            cols[4].text("(حسابك الحالي)")
+            cols[5].text("-")
 
 st.sidebar.markdown("---")
 st.sidebar.caption("TIC TAC • Building Maintenance • v4.0")
