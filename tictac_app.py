@@ -140,70 +140,62 @@ UNITS = [
 ]
 
 # ------------------------------------------------------------
-# CSS - Force Absolute Light Theme & Override Dark Popovers/Calendars
+# CSS & JS - Force Absolute Light Theme & Override Mobile Dark System
 # ------------------------------------------------------------
 st.markdown("""
 <style>
-/* Force Light Mode variables & color schemes */
-:root {
-    color-scheme: light !important;
-}
-
+/* Force Light Mode variables & color schemes globally */
 html, body, [data-testid="stAppViewContainer"], .stApp {
+    color-scheme: light !important;
     background-color: #ffffff !important;
     color: #111827 !important;
     font-family: Tahoma, Arial, sans-serif !important;
 }
 
-/* Force all general text elements to be dark and clear */
-h1, h2, h3, h4, h5, h6, label, p, span, div, .stMarkdown {
+/* Force all text elements to be dark and clear */
+h1, h2, h3, h4, h5, h6, label, p, span, div, .stMarkdown, .stText {
     color: #111827 !important;
+    -webkit-text-fill-color: #111827 !important;
 }
 
-/* Inputs, text areas, date pickers, select boxes */
+/* Inputs, text areas, selection boxes, passwords */
 input, textarea, select,
-div[data-baseweb="input"] input,
-div[data-baseweb="base-input"] input,
+[data-baseweb="input"] input,
+[data-baseweb="base-input"] input,
 .stTextInput input,
 .stPasswordInput input,
-div[data-baseweb="input"],
-div[data-baseweb="select"] > div,
-div[data-baseweb="select"] div {
+[data-baseweb="input"],
+[data-baseweb="select"] > div {
     background-color: #f9fafb !important;
     color: #111827 !important;
     -webkit-text-fill-color: #111827 !important;
     border-color: #d1d5db !important;
 }
 
-/* Force calendars, date picker popovers, select dropdown menus to be WHITE with dark text */
-div[data-baseweb="popover"],
-div[data-baseweb="menu"],
-div[data-baseweb="calendar"],
-div[data-baseweb="select-dropdown"],
-ul[role="listbox"],
-div[role="listbox"],
-div[role="option"],
-li[role="option"],
-div[class*="datepicker"],
-div[class*="calendar"] {
+/* Fix mobile popovers, dialogs, calendars, and dropdown menus */
+[data-baseweb="popover"],
+[data-baseweb="menu"],
+[data-baseweb="calendar"],
+[data-baseweb="select-dropdown"],
+[role="listbox"],
+[role="dialog"],
+[role="menu"] {
     background-color: #ffffff !important;
     color: #111827 !important;
 }
 
-/* Force text inside calendar and dropdown menus to be dark */
-div[data-baseweb="calendar"] *,
-div[data-baseweb="popover"] *,
-div[data-baseweb="menu"] *,
-div[role="listbox"] *,
-div[role="option"] *,
-span[role="option"] * {
+[data-baseweb="calendar"] *,
+[data-baseweb="popover"] *,
+[data-baseweb="menu"] *,
+[role="listbox"] *,
+[role="option"] * {
     background-color: transparent !important;
     color: #111827 !important;
     -webkit-text-fill-color: #111827 !important;
 }
 
-/* Highlight/Selected day in calendar */
-div[data-baseweb="calendar"] button[aria-selected="true"] {
+/* Selected calendar day */
+[data-baseweb="calendar"] button[aria-selected="true"] {
     background-color: #d97706 !important;
     color: #ffffff !important;
     -webkit-text-fill-color: #ffffff !important;
@@ -213,7 +205,8 @@ div[data-baseweb="calendar"] button[aria-selected="true"] {
 div.stButton > button {
     background-color: #1f2937 !important;
     color: #ffffff !important;
-    border: 1px solid #111827 !important;
+    -webkit-text-fill-color: #ffffff !important;
+    border: 1px solid #1f2937 !important;
     border-radius: 8px !important;
     font-weight: bold !important;
 }
@@ -230,6 +223,7 @@ section[data-testid="stSidebar"] {
 }
 section[data-testid="stSidebar"] * {
     color: #1f2937 !important;
+    -webkit-text-fill-color: #1f2937 !important;
 }
 
 .main-header {
@@ -260,6 +254,12 @@ section[data-testid="stSidebar"] * {
     font-size: 13px;
 }
 </style>
+
+<script>
+/* Force Light mode and remove any dark theme attributes injected by mobile browser */
+document.documentElement.style.colorScheme = 'light';
+document.documentElement.setAttribute('data-theme', 'light');
+</script>
 """, unsafe_allow_html=True)
 
 
