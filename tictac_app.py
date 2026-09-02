@@ -43,8 +43,8 @@ DEPARTMENTS = ["الإدارة", "الصيانة التشغيلية", "الفن�
 CATEGORIES = ["مواد كهربائية", "مواد تكييف HVAC", "مواد سباكة وصرف", "مضخات وقطع غيار", "مكافحة وإنذار الحريق", "مولدات و UPS", "مصاعد", "BMS وتحكم", "CCTV وأمن", "شبكات واتصالات", "نجارة وأبواب", "ألومنيوم وزجاج", "دهانات", "جبس وأسقف", "عزل", "أعمال مدنية وبناء", "حدادة ولحام", "معدات مطابخ", "مواد نظافة", "معدات سلامة PPE", "قطع غيار عامة", "أخرى"]
 UNITS = ["قطعة", "متر", "متر مربع", "متر مكعب", "كيلو", "لتر", "جالون", "علبة", "كرتون", "رول", "طقم", "وحدة"]
 STATUSES = ["جديد", "تم التعيين", "قيد العمل", "بانتظار قطع غيار", "مكتمل", "ملغي"]
-MAIN_MENU = ["لوحة التحكم", "أوامر الصيانة", "الأصول والمعدات", "المواد وقطع الغيار", "حركة المخزون", "المشتريات", "المباني والعملاء", "العقود", "الموظفون", "الحسابات والمالية", "التقارير"]
-MENU_AREAS = {"لوحة التحكم":"dashboard", "أوامر الصيانة":"maintenance", "الأصول والمعدات":"maintenance", "المواد وقطع الغيار":"inventory", "حركة المخزون":"inventory", "المشتريات":"purchases", "المباني والعملاء":"buildings", "العقود":"contracts", "الموظفون":"hr", "الحسابات والمالية":"finance", "التقارير":"reports"}
+MAIN_MENU = ["لوحة التحكم", "أوامر الصيانة", "الأصول والمعدات", "المواد وقطع الغيار", "حركة المخزون", "المشتريات", "المباني والعملاء", "العقود", "الموظفون", "الحضور والدوام", "الحسابات والمالية", "التقارير"]
+MENU_AREAS = {"لوحة التحكم":"dashboard", "أوامر الصيانة":"maintenance", "الأصول والمعدات":"maintenance", "المواد وقطع الغيار":"inventory", "حركة المخزون":"inventory", "المشتريات":"purchases", "المباني والعملاء":"buildings", "العقود":"contracts", "الموظفون":"hr", "الحضور والدوام":"hr", "الحسابات والمالية":"finance", "التقارير":"reports"}
 LEGACY_PERMISSIONS = {"مدير صيانة المباني": ["dashboard", "maintenance", "buildings", "contracts", "reports"], "مشرف صيانة": ["dashboard", "maintenance", "reports"], "مهندس صيانة": ["dashboard", "maintenance", "reports"], "مسؤول مشتريات": ["dashboard", "purchases", "inventory", "reports"], "أمين مستودع": ["dashboard", "inventory", "purchases", "reports"], "محاسب": ["dashboard", "finance", "contracts", "reports"], "مسؤول موارد بشرية": ["dashboard", "hr", "reports"]}
 
 st.set_page_config(page_title="TIC TAC | صيانة المباني", page_icon="🏢", layout="wide", initial_sidebar_state="expanded")
@@ -69,6 +69,8 @@ div.stButton > button, .stDownloadButton > button {{ background:{NAVY} !importan
 div.stButton > button:hover, .stDownloadButton > button:hover {{ background:{COPPER} !important; }}
 input, textarea, [data-baseweb="select"] > div {{ border-radius:8px !important; }}
 [data-testid="stDataFrame"] {{ border:1px solid #e5e7eb; border-radius:10px; }}
+.stCode, code, pre, textarea, input {{ color: {INK} !important; }}
+.stCodeBlock {{ background-color: {WHITE} !important; color: {INK} !important; border: 1px solid #e7ded4; }}
 @media (max-width: 700px) {{ .block-container {{ padding:.7rem .55rem 2rem; }} .logo-card {{ flex-direction:column; text-align:center; padding:14px; }} .logo-card img {{ width:150px; }} [data-testid="stHorizontalBlock"] {{ flex-wrap:wrap; gap:.5rem; }} [data-testid="stHorizontalBlock"] > div {{ min-width:calc(50% - .5rem) !important; flex:1 1 calc(50% - .5rem) !important; }} section[data-testid="stSidebar"] {{ width: min(85vw, 320px); }} .stDataFrame {{ font-size:.75rem; }} }}
 </style>
 """, unsafe_allow_html=True)
@@ -398,17 +400,27 @@ elif menu == "إدارة المستخدمين":
 
     names={f"{r['username']} — {r['full_name']}":int(r['id']) for _,r in users.iterrows() if int(r['id']) != int(user['id'])}
     if names:
-        st.markdown("### إلغاء أو إعادة تفعيل مستخدم")
+        st.markdown("### إدارة حالة المستخدمين (تعطيل / تفعيل / إزالة نهائية)")
         selected_user=st.selectbox("اختر المستخدم",list(names))
         chosen_id=names[selected_user]
         chosen_active=int(users.loc[users["id"]==chosen_id,"active"].iloc[0])
-        c1,c2=st.columns(2)
+        
+        c1, c2, c3 = st.columns(3)
         with c1:
-            if st.button("إلغاء / تعطيل المستخدم",use_container_width=True,disabled=not bool(chosen_active)):
-                x("UPDATE users SET active=0 WHERE id=?",(chosen_id,)); st.success("تم تعطيل المستخدم. لن يستطيع تسجيل الدخول."); st.rerun()
+            if st.button("تعطيل المستخدم", use_container_width=True, disabled=not bool(chosen_active)):
+                x("UPDATE users SET active=0 WHERE id=?", (chosen_id,))
+                st.success("تم تعطيل المستخدم بنجاح.")
+                st.rerun()
         with c2:
-            if st.button("إعادة تفعيل المستخدم",use_container_width=True,disabled=bool(chosen_active)):
-                x("UPDATE users SET active=1 WHERE id=?",(chosen_id,)); st.success("تمت إعادة تفعيل المستخدم."); st.rerun()
+            if st.button("إعادة تفعيل", use_container_width=True, disabled=bool(chosen_active)):
+                x("UPDATE users SET active=1 WHERE id=?", (chosen_id,))
+                st.success("تمت إعادة تفعيل المستخدم.")
+                st.rerun()
+        with c3:
+            if st.button("إزالة / حذف نهائي", use_container_width=True):
+                x("DELETE FROM users WHERE id=?", (chosen_id,))
+                st.success("تم حذف المستخدم نهائياً من قاعدة البيانات.")
+                st.rerun()
 
 st.sidebar.markdown("---")
 st.sidebar.caption("TIC TAC • Building Maintenance • v4.0")
