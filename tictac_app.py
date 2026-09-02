@@ -5,32 +5,35 @@ import pandas as pd
 
 st.set_page_config(page_title="Tic Tac for Building Maintenance", layout="wide")
 
-# إزالة كامل الخلفيات الداكنة وفرض اللون الأبيض والنصوص الواضحة على كافة العناصر
+# إقحام تنسيقات CSS صارمة لإجبار حقول تسجيل الدخول وباقي الحقول على اللون الأبيض
 st.markdown("""
     <style>
-    /* خلفية عامة فاتحة */
     .stApp {
         background-color: #f7f4ed !important;
         color: #0b132b !important;
         font-family: Tahoma, sans-serif !important;
     }
     
-    /* فرض النصوص الكحلية على العناوين والتسميات */
-    h1, h2, h3, h4, h5, h6, label, p, span, div, 
-    .stSelectbox label, .stTextInput label, .stTextArea label, .stNumberInput label, 
-    .stDateInput label, .stRadio label, .stCheckbox label {
+    h1, h2, h3, h4, h5, h6, label, p, span, div {
         color: #0b132b !important;
         font-weight: bold !important;
     }
     
-    /* إلغاء أي خلفية داكنة في حقول النصوص وتثبيت اللون الأبيض والنصوص الداكنة */
-    input, textarea, div[data-baseweb="input"], div[data-baseweb="input"] input {
+    /* فرض اللون الأبيض والنصوص الداكنة على كافة حقول الإدخال بدون استثناء */
+    input, textarea, select, 
+    div[data-baseweb="input"] input, 
+    div[data-baseweb="base-input"] input,
+    .stTextInput input, .stPasswordInput input {
+        background-color: #ffffff !important;
+        color: #0b132b !important;
+        -webkit-text-fill-color: #0b132b !important;
+    }
+    
+    div[data-baseweb="input"], div[data-baseweb="select"] > div {
         background-color: #ffffff !important;
         color: #0b132b !important;
     }
     
-    /* إلغاء الخلفيات الداكنة للقوائم المنسدلة وخيارات الاختيار تماماً */
-    div[data-baseweb="select"] > div, div[data-baseweb="select"],
     div[data-baseweb="popover"], div[data-baseweb="menu"], ul[role="listbox"], div[role="listbox"] {
         background-color: #ffffff !important;
         color: #0b132b !important;
@@ -41,12 +44,6 @@ st.markdown("""
         background-color: #ffffff !important;
     }
     
-    li[role="option"]:hover {
-        background-color: #f0ece1 !important;
-        color: #0b132b !important;
-    }
-
-    /* إلغاء الخلفيات الداكنة للأزرار وجعلها واضحة */
     div.stButton > button {
         background-color: #14213d !important;
         color: #ffffff !important;
@@ -58,7 +55,6 @@ st.markdown("""
         color: #0b132b !important;
     }
     
-    /* القائمة الجانبية */
     section[data-testid="stSidebar"] {
         background-color: #f0ece1 !important;
         border-left: 1px solid #dcd6c9;
@@ -66,12 +62,7 @@ st.markdown("""
     section[data-testid="stSidebar"] * {
         color: #0b132b !important;
     }
-    section[data-testid="stSidebar"] input {
-        color: #0b132b !important;
-        background-color: #ffffff !important;
-    }
     
-    /* الهيدر الرئيسي */
     .main-header {
         background-color: #ffffff !important;
         color: #0b132b !important;
@@ -83,17 +74,7 @@ st.markdown("""
         margin-bottom: 25px;
         box-shadow: 0 3px 8px rgba(0,0,0,0.05);
     }
-    .main-header h1 {
-        color: #0b132b !important;
-        font-size: 28px !important;
-        margin: 0 !important;
-    }
-    .main-header p {
-        color: #0b132b !important;
-        font-size: 15px !important;
-    }
     
-    /* صندوق تسجيل الدخول */
     .login-box {
         max-width: 420px;
         margin: 50px auto;
@@ -106,7 +87,6 @@ st.markdown("""
         box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
     
-    /* كروت وحاويات الإدخال البيضاء بالكامل */
     .card-container {
         background-color: #ffffff !important;
         padding: 25px !important;
@@ -118,7 +98,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# بيانات الدخول
 USERS = {
     "Tictac.qatar": "Azoz@123"
 }
@@ -152,7 +131,6 @@ def check_login():
 if not check_login():
     st.stop()
 
-# قاعدة البيانات الشاملة
 def init_db():
     conn = sqlite3.connect('tictac_pro.db', check_same_thread=False)
     cursor = conn.cursor()
@@ -173,7 +151,6 @@ def init_db():
 conn = init_db()
 cursor = conn.cursor()
 
-# الهيدر
 st.markdown("""
     <div class="main-header">
         <h1>TIC TAC لصيانة المباني</h1>
@@ -185,7 +162,6 @@ if st.sidebar.button("تسجيل الخروج"):
     st.session_state.logged_in = False
     st.rerun()
 
-# القائمة الجانبية
 st.sidebar.markdown("### 🗂️ أقسام النظام")
 menu = st.sidebar.radio("اختر القسم:", [
     "🛠️ إدخال مهام الصيانة", 
@@ -195,7 +171,8 @@ menu = st.sidebar.radio("اختر القسم:", [
     "📊 التقارير الشاملة"
 ])
 
-# 1. إدخال مهام الصيانة
+current_date_str = datetime.now().strftime("%Y-%m-%d")
+
 if menu == "🛠️ إدخال مهام الصيانة":
     st.markdown("### 🛠️ تسجيل وتفصيل مهام صيانة المباني")
     with st.container():
@@ -216,7 +193,7 @@ if menu == "🛠️ إدخال مهام الصيانة":
         with col2:
             technician = st.text_input("الفني المسؤول / المقاول المكلف")
             status = st.selectbox("حالة المهمة", ["جديد", "قيد العمل عليه", "مكتمل", "مؤجل"])
-            date = st.date_input("تاريخ الأمر", datetime.now()).strftime("%Y-%m-%d")
+            date = st.text_input("تاريخ الأمر (السنة-الشهر-اليوم)", value=current_date_str)
             description = st.text_area("وصف تفصيلي للعطل أو الإصلاح المطلوب")
 
         if st.button("حفظ مهمة الصيانة", use_container_width=True):
@@ -229,7 +206,6 @@ if menu == "🛠️ إدخال مهام الصيانة":
                 st.error("الرجاء إدخال اسم المبنى ووصف العطل على الأقل.")
         st.markdown('</div>', unsafe_allow_html=True)
 
-# 2. الإدخال المالي
 elif menu == "💰 الإدخال المالي":
     st.markdown("### 💰 الإدارة المالية وعقود الصيانة")
     with st.container():
@@ -248,7 +224,7 @@ elif menu == "💰 الإدخال المالي":
             description = st.text_input("بيان المعاملة / اسم العميل أو المستفيد")
         with col2:
             amount = st.number_input("المبلغ (ر.ق / ر.س)", min_value=0.0, format="%.2f")
-            date = st.date_input("تاريخ المعاملة المالية", datetime.now()).strftime("%Y-%m-%d")
+            date = st.text_input("تاريخ المعاملة المالية (السنة-الشهر-اليوم)", value=current_date_str)
 
         if st.button("حفظ المعاملة المالية", use_container_width=True):
             if description and amount > 0:
@@ -261,7 +237,6 @@ elif menu == "💰 الإدخال المالي":
                 st.error("الرجاء إدخال البيان والمبلغ الصحيح.")
         st.markdown('</div>', unsafe_allow_html=True)
 
-# 3. إدخال المشتريات
 elif menu == "🛒 إدخال المشتريات":
     st.markdown("### 🛒 مشتريات قطع الغيار ومواد التشغيل")
     with st.container():
@@ -280,7 +255,7 @@ elif menu == "🛒 إدخال المشتريات":
         with col2:
             price = st.number_input("إجمالي التكلفة / السعر", min_value=0.0, format="%.2f")
             supplier = st.text_input("اسم المورد / المحل")
-            date = st.date_input("تاريخ الشراء", datetime.now()).strftime("%Y-%m-%d")
+            date = st.text_input("تاريخ الشراء (السنة-الشهر-اليوم)", value=current_date_str)
 
         if st.button("حفظ فاتورة المشتريات", use_container_width=True):
             if item_name and price > 0:
@@ -292,10 +267,8 @@ elif menu == "🛒 إدخال المشتريات":
                 st.error("الرجاء إدخال اسم الصنف والسعر.")
         st.markdown('</div>', unsafe_allow_html=True)
 
-# 4. شؤون الموظفين (حضور وغياب)
 elif menu == "👥 شؤون الموظفين (حضور وغياب)":
     st.markdown("### 👥 إدارة الموظفين وسجل الحضور والغياب")
-    
     tab_emp1, tab_emp2 = st.tabs(["إضافة موظفين جدد", "تسجيل الحضور والغياب اليومي"])
     
     with tab_emp1:
@@ -317,12 +290,11 @@ elif menu == "👥 شؤون الموظفين (حضور وغياب)":
     with tab_emp2:
         st.markdown('<div class="card-container">', unsafe_allow_html=True)
         st.subheader("سجل الحضور والغياب اليومي")
-        
         cursor.execute("SELECT name FROM employees")
         emps = [row[0] for row in cursor.fetchall()]
         
         if emps:
-            att_date = st.date_input("تاريخ اليوم", datetime.now()).strftime("%Y-%m-%d")
+            att_date = st.text_input("تاريخ اليوم (السنة-الشهر-اليوم)", value=current_date_str)
             selected_emp = st.selectbox("اختر الموظف", emps)
             att_status = st.selectbox("الحالة", ["حاضر", "غائب", "إجازة", "مهمة خارجية"])
             
@@ -334,17 +306,14 @@ elif menu == "👥 شؤون الموظفين (حضور وغياب)":
             st.info("لا يوجد موظفون مسجلون حالياً. يرجى إضافتهم من تبويب (إضافة موظفين جدد) أولاً.")
         st.markdown('</div>', unsafe_allow_html=True)
 
-# 5. التقارير الشاملة
 elif menu == "📊 التقارير الشاملة":
     st.markdown("### 📊 التقارير والسجلات التفصيلية الشاملة")
-    
     rep_tab = st.selectbox("اختر التقرير المراد عرضه:", [
         "سجل مهام الصيانة للمباني", 
         "التقرير المالي وحساب الأرباح", 
         "سجل المشتريات", 
         "قائمة الموظفين وسجل الحضور والغياب"
     ])
-    
     st.markdown("---")
     
     if rep_tab == "سجل مهام الصيانة للمباني":
@@ -359,16 +328,13 @@ elif menu == "📊 التقارير الشاملة":
     elif rep_tab == "التقرير المالي وحساب الأرباح":
         cursor.execute("SELECT id, type, category, description, amount, date FROM finance ORDER BY date DESC")
         rows = cursor.fetchall()
-        
         rev = sum([r[4] for r in rows if r[1] == 'revenue'])
         exp = sum([r[4] for r in rows if r[1] == 'expense'])
         net = rev - exp
-        
         c1, c2, c3 = st.columns(3)
         c1.metric("إجمالي الإيرادات", f"{rev:,.2f}")
         c2.metric("إجمالي المصروفات", f"{exp:,.2f}")
         c3.metric("صافي الربح", f"{net:,.2f}")
-        
         st.markdown("---")
         if rows:
             df = pd.DataFrame(rows, columns=["م", "النوع", "التصنيف", "البيان", "المبلغ", "التاريخ"])
