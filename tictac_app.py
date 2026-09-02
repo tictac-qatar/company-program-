@@ -358,7 +358,7 @@ elif menu == "الموظفون":
     if not has_access(user,"hr"): st.error("لا تملك الصلاحية."); st.stop()
     with st.form("employee"):
         a,b=st.columns(2)
-        with a: name=st.text_input("اسم الموظف *"); nid=st.text_input("الرقم الشخصي /"); phone=st.text_input("رقم الجوال"); role=st.selectbox("المسمى الوظيفي",ROLES); dept=st.selectbox("القسم الإداري",DEPARTMENTS)
+        with a: name=st.text_input("اسم الموظف *"); nid=st.text_input("الرقم الشخصي"); phone=st.text_input("رقم الجوال"); role=st.selectbox("المسمى الوظيفي",ROLES); dept=st.selectbox("القسم الإداري",DEPARTMENTS)
         with b: hire=st.date_input("تاريخ التعيين",date.today()); salary=st.number_input("الراتب الشهري",0.0); status=st.selectbox("الحالة",["على رأس العمل","إجازة سنوية","موقوف","منتهي الخدمة"]); skills=st.text_input("المهارات التخصصية أو شهادات الاعتماد")
         notes=st.text_area("ملاحظات"); submit=st.form_submit_button("حفظ بيانات الموظف",use_container_width=True)
         if submit and name.strip(): x("INSERT INTO employees(name,national_id,phone,role,department,hire_date,salary,status,skills,notes) VALUES(?,?,?,?,?,?,?,?,?,?)",(name,nid,phone,role,dept,hire.isoformat(),salary,status,skills,notes)); st.success("تم حفظ بيانات الموظف")
