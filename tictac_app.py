@@ -43,7 +43,9 @@ DEPARTMENTS = ["الإدارة", "الصيانة التشغيلية", "الفن�
 CATEGORIES = ["مواد كهربائية", "مواد تكييف HVAC", "مواد سباكة وصرف", "مضخات وقطع غيار", "مكافحة وإنذار الحريق", "مولدات و UPS", "مصاعد", "BMS وتحكم", "CCTV وأمن", "شبكات واتصالات", "نجارة وأبواب", "ألومنيوم وزجاج", "دهانات", "جبس وأسقف", "عزل", "أعمال مدنية وبناء", "حدادة ولحام", "معدات مطابخ", "مواد نظافة", "معدات سلامة PPE", "قطع غيار عامة", "أخرى"]
 UNITS = ["قطعة", "متر", "متر مربع", "متر مكعب", "كيلو", "لتر", "جالون", "علبة", "كرتون", "رول", "طقم", "وحدة"]
 STATUSES = ["جديد", "تم التعيين", "قيد العمل", "بانتظار قطع غيار", "مكتمل", "ملغي"]
-PERMISSIONS = {"مدير النظام": "all", "مدير صيانة المباني": "maintenance", "مشرف صيانة": "maintenance", "مهندس صيانة": "maintenance", "مسؤول مشتريات": "purchases", "أمين مستودع": "inventory", "محاسب": "finance", "مسؤول موارد بشرية": "hr"}
+MAIN_MENU = ["لوحة التحكم", "أوامر الصيانة", "الأصول والمعدات", "المواد وقطع الغيار", "حركة المخزون", "المشتريات", "المباني والعملاء", "العقود", "الموظفون", "الحسابات والمالية", "التقارير"]
+MENU_AREAS = {"لوحة التحكم":"dashboard", "أوامر الصيانة":"maintenance", "الأصول والمعدات":"maintenance", "المواد وقطع الغيار":"inventory", "حركة المخزون":"inventory", "المشتريات":"purchases", "المباني والعملاء":"buildings", "العقود":"contracts", "الموظفون":"hr", "الحسابات والمالية":"finance", "التقارير":"reports"}
+LEGACY_PERMISSIONS = {"مدير صيانة المباني": ["dashboard", "maintenance", "buildings", "contracts", "reports"], "مشرف صيانة": ["dashboard", "maintenance", "reports"], "مهندس صيانة": ["dashboard", "maintenance", "reports"], "مسؤول مشتريات": ["dashboard", "purchases", "inventory", "reports"], "أمين مستودع": ["dashboard", "inventory", "purchases", "reports"], "محاسب": ["dashboard", "finance", "contracts", "reports"], "مسؤول موارد بشرية": ["dashboard", "hr", "reports"]}
 
 st.set_page_config(page_title="TIC TAC | صيانة المباني", page_icon="🏢", layout="wide", initial_sidebar_state="expanded")
 
@@ -81,7 +83,7 @@ def conn():
 def init_db():
     with conn() as c:
         c.executescript("""
-        CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, full_name TEXT NOT NULL, role TEXT NOT NULL, employee_id INTEGER, active INTEGER DEFAULT 1, created_at TEXT NOT NULL);
+        CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, full_name TEXT NOT NULL, role TEXT NOT NULL, employee_id INTEGER, permissions TEXT DEFAULT '', active INTEGER DEFAULT 1, created_at TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS employees (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, national_id TEXT, phone TEXT, role TEXT, department TEXT, hire_date TEXT, salary REAL DEFAULT 0, status TEXT DEFAULT 'على رأس العمل', skills TEXT, notes TEXT);
         CREATE TABLE IF NOT EXISTS buildings (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, client TEXT, address TEXT, contact_person TEXT, contact_phone TEXT, floors_count INTEGER DEFAULT 1, systems_installed TEXT, notes TEXT);
         CREATE TABLE IF NOT EXISTS assets (id INTEGER PRIMARY KEY AUTOINCREMENT, building_id INTEGER, asset_code TEXT UNIQUE, name TEXT NOT NULL, system_type TEXT, location TEXT, manufacturer TEXT, model TEXT, serial_no TEXT, install_date TEXT, warranty_date TEXT, criticality TEXT DEFAULT 'متوسط', status TEXT DEFAULT 'يعمل', last_service TEXT, next_service TEXT, notes TEXT, FOREIGN KEY(building_id) REFERENCES buildings(id) ON DELETE SET NULL);
@@ -94,9 +96,12 @@ def init_db():
         CREATE TABLE IF NOT EXISTS attendance (id INTEGER PRIMARY KEY AUTOINCREMENT, emp_id INTEGER, status TEXT, date TEXT, work_hours REAL DEFAULT 8, notes TEXT, UNIQUE(emp_id,date), FOREIGN KEY(emp_id) REFERENCES employees(id) ON DELETE CASCADE);
         CREATE TABLE IF NOT EXISTS finance (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT, category TEXT, description TEXT, amount REAL, date TEXT, reference TEXT, task_id INTEGER, contract_id INTEGER);
         """)
+        user_columns = [r[1] for r in c.execute("PRAGMA table_info(users)").fetchall()]
+        if "permissions" not in user_columns:
+            c.execute("ALTER TABLE users ADD COLUMN permissions TEXT DEFAULT ''")
         cur = c.execute("SELECT COUNT(*) FROM users")
         if cur.fetchone()[0] == 0:
-            c.execute("INSERT INTO users(username,password_hash,full_name,role,created_at) VALUES(?,?,?,?,?)", ("admin", hash_password("ChangeMe@123"), "مدير النظام", "مدير النظام", datetime.now().isoformat()))
+            c.execute("INSERT INTO users(username,password_hash,full_name,role,permissions,created_at) VALUES(?,?,?,?,?,?)", ("admin", hash_password("ChangeMe@123"), "مدير النظام", "مدير النظام", "all", datetime.now().isoformat()))
 
 
 def hash_password(value):
@@ -152,13 +157,15 @@ def login():
             if not row.empty:
                 uid = int(row.iloc[0]["id"]); st.session_state.uid = uid; st.query_params.session = session_token(uid); st.rerun()
             else: st.error("بيانات الدخول غير صحيحة أو الحساب غير نشط.")
-        st.info("لأول تشغيل: admin / ChangeMe@123 — يرجى تغيير كلمة المرور من إدارة المستخدمين.")
     return None
 
 
 def has_access(user, area):
-    perm = PERMISSIONS.get(user["role"], "none")
-    return perm in ("all", area)
+    if user.get("role") == "مدير النظام":
+        return True
+    saved = str(user.get("permissions") or "").strip()
+    permissions = set(saved.split("|")) if saved else set(LEGACY_PERMISSIONS.get(user.get("role"), ["dashboard"]))
+    return area in permissions or "all" in permissions
 
 
 def logo_header():
@@ -204,9 +211,9 @@ with st.sidebar:
     st.markdown(f"### مرحباً {user['full_name']}")
     st.caption(f"الصلاحية: {user['role']}")
     if st.button("تسجيل الخروج", use_container_width=True): logout()
-    options = ["لوحة التحكم", "أوامر الصيانة", "الأصول والصيانة الوقائية", "المواد وقطع الغيار", "حركة المخزون", "المشتريات", "المباني والعملاء", "العقود", "الموظفون", "الحضور والدوام", "الحسابات والمالية", "التقارير"]
+    options = [label for label in MAIN_MENU if has_access(user, MENU_AREAS[label])]
     if user["role"] == "مدير النظام": options += ["إدارة المستخدمين"]
-    menu = st.radio("القائمة الرئيسية", options)
+    menu = st.radio("القائمة الرئيسية", options or ["لوحة التحكم"])
 
 if menu == "لوحة التحكم":
     st.title("لوحة التحكم")
@@ -235,11 +242,11 @@ elif menu == "أوامر الصيانة":
     df=q("SELECT t.ticket_no AS 'البلاغ', b.name AS 'المبنى', t.system_type AS 'التخصص', t.priority AS 'الأولوية', t.status AS 'الحالة', t.report_date AS 'التاريخ', t.description AS 'الوصف' FROM tasks t LEFT JOIN buildings b ON b.id=t.building_id ORDER BY t.id DESC")
     st.dataframe(df,use_container_width=True,hide_index=True); exports(df,"maintenance_tasks","أوامر الصيانة")
 
-elif menu == "الأصول والصيانة الوقائية":
-    st.title("الأصول وخطط الصيانة الوقائية")
+elif menu == "الأصول والمعدات":
+    st.title("الأصول والمعدات")
     if not has_access(user,"maintenance"): st.error("لا تملك صلاحية الوصول لهذا القسم."); st.stop()
     buildings=q("SELECT id,name FROM buildings"); bm={r['name']:r['id'] for _,r in buildings.iterrows()}; assets=q("SELECT id,asset_code,name FROM assets"); am={f"{r['asset_code']} - {r['name']}":r['id'] for _,r in assets.iterrows()}
-    tab1,tab2=st.tabs(["إضافة أصل", "خطط PM والأصول"])
+    tab1,tab2=st.tabs(["إضافة أصل", "قائمة الأصول"])
     with tab1:
         with st.form("asset"):
             a,b=st.columns(2)
@@ -359,15 +366,49 @@ elif menu == "إدارة المستخدمين":
     st.title("إدارة المستخدمين والصلاحيات")
     if user["role"] != "مدير النظام": st.error("هذه الصفحة للمدير فقط."); st.stop()
     emps=q("SELECT id,name,role FROM employees"); em={f"{r['name']} ({r['role']})":r['id'] for _,r in emps.iterrows()}
+    st.caption("حدد الأقسام التي يستطيع المستخدم رؤيتها من القائمة الرئيسية. مدير النظام يملك جميع الصلاحيات تلقائياً.")
     with st.form("user"):
         a,b=st.columns(2)
-        with a: username=st.text_input("اسم المستخدم *"); password=st.text_input("كلمة المرور *",type="password"); full=st.text_input("الاسم الظاهر *")
-        with b: role=st.selectbox("الصلاحية / التخصص",["مدير النظام","مدير صيانة المباني","مشرف صيانة","مهندس صيانة","مسؤول مشتريات","أمين مستودع","محاسب","مسؤول موارد بشرية"]); employee=st.selectbox("الموظف المرتبط",["بدون"]+list(em))
-        if st.form_submit_button("إضافة المستخدم",use_container_width=True) and username.strip() and password:
-            try: x("INSERT INTO users(username,password_hash,full_name,role,employee_id,created_at) VALUES(?,?,?,?,?,?)",(username.strip(),hash_password(password),full,role,em.get(employee),datetime.now().isoformat())); st.success("تمت إضافة المستخدم")
-            except sqlite3.IntegrityError: st.error("اسم المستخدم موجود مسبقاً")
-    df=q("SELECT username AS 'المستخدم',full_name AS 'الاسم',role AS 'الصلاحية',active AS 'نشط',created_at AS 'تاريخ الإنشاء' FROM users ORDER BY id DESC"); st.dataframe(df,use_container_width=True,hide_index=True); exports(df,"users","المستخدمون")
-    st.warning("غيّر كلمة مرور admin الافتراضية فور أول تشغيل.")
+        with a:
+            username=st.text_input("اسم المستخدم *")
+            password=st.text_input("كلمة المرور *",type="password")
+            full=st.text_input("الاسم الظاهر *")
+        with b:
+            account_type=st.selectbox("نوع الحساب",["مستخدم مخصص","مدير النظام"])
+            employee=st.selectbox("الموظف المرتبط",["بدون"]+list(em))
+            selected_sections=st.multiselect("صلاحيات القائمة الرئيسية", MAIN_MENU, default=["لوحة التحكم"])
+        if st.form_submit_button("إضافة المستخدم",use_container_width=True):
+            if not username.strip() or not password or not full.strip():
+                st.error("يرجى إدخال اسم المستخدم وكلمة المرور والاسم الظاهر.")
+            elif account_type != "مدير النظام" and not selected_sections:
+                st.error("اختر قسماً واحداً على الأقل للمستخدم.")
+            else:
+                permissions="all" if account_type == "مدير النظام" else "|".join(dict.fromkeys([MENU_AREAS[s] for s in selected_sections] + ["dashboard"]))
+                try:
+                    x("INSERT INTO users(username,password_hash,full_name,role,employee_id,permissions,active,created_at) VALUES(?,?,?,?,?,?,1,?)",(username.strip(),hash_password(password),full,account_type,em.get(employee),permissions,datetime.now().isoformat()))
+                    st.success("تمت إضافة المستخدم والصلاحيات بنجاح.")
+                except sqlite3.IntegrityError: st.error("اسم المستخدم موجود مسبقاً.")
+
+    users=q("SELECT id,username,full_name,role,active FROM users ORDER BY id DESC")
+    st.markdown("### المستخدمون المسجلون")
+    display=users.rename(columns={"username":"المستخدم","full_name":"الاسم","role":"نوع الحساب","active":"الحالة"}).copy()
+    display["الحالة"]=display["الحالة"].map({1:"نشط",0:"ملغى / معطل"})
+    st.dataframe(display.drop(columns=["id"]),use_container_width=True,hide_index=True)
+    exports(display.drop(columns=["id"]),"users","المستخدمون")
+
+    names={f"{r['username']} — {r['full_name']}":int(r['id']) for _,r in users.iterrows() if int(r['id']) != int(user['id'])}
+    if names:
+        st.markdown("### إلغاء أو إعادة تفعيل مستخدم")
+        selected_user=st.selectbox("اختر المستخدم",list(names))
+        chosen_id=names[selected_user]
+        chosen_active=int(users.loc[users["id"]==chosen_id,"active"].iloc[0])
+        c1,c2=st.columns(2)
+        with c1:
+            if st.button("إلغاء / تعطيل المستخدم",use_container_width=True,disabled=not bool(chosen_active)):
+                x("UPDATE users SET active=0 WHERE id=?",(chosen_id,)); st.success("تم تعطيل المستخدم. لن يستطيع تسجيل الدخول."); st.rerun()
+        with c2:
+            if st.button("إعادة تفعيل المستخدم",use_container_width=True,disabled=bool(chosen_active)):
+                x("UPDATE users SET active=1 WHERE id=?",(chosen_id,)); st.success("تمت إعادة تفعيل المستخدم."); st.rerun()
 
 st.sidebar.markdown("---")
 st.sidebar.caption("TIC TAC • Building Maintenance • v4.0")
