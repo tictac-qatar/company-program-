@@ -5,63 +5,65 @@ import pandas as pd
 
 st.set_page_config(page_title="Tic Tac for Building Maintenance", layout="wide")
 
-# تخصيص التصميم والخلفية لتتطابق مع الهوية البصرية (بيج دافئ، كحلي، برونزي)
+# تخصيص التصميم، الخلفية، ووضوح الخطوط بناءً على الهوية البصرية
 st.markdown("""
     <style>
-    /* خلفية الصفحة العامة */
+    /* خلفية الصفحة العامة ووضوح الخطوط */
     .stApp {
-        background-color: #f5f2eb;
-        color: #14213d;
+        background-color: #f7f4ed;
+        color: #0b132b;
+        font-family: Tahoma, sans-serif;
     }
     
     /* الهيدر الرئيسي */
     .main-header {
         background-color: #14213d;
         color: #ffffff;
-        padding: 22px;
-        border-radius: 12px;
+        padding: 20px;
+        border-radius: 10px;
         border-bottom: 5px solid #c59b27;
         text-align: center;
-        margin-bottom: 25px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
     }
     .main-header h1 {
         color: #c59b27;
-        font-size: 30px;
+        font-size: 28px;
         margin: 0;
-        font-weight: 700;
+        font-weight: bold;
     }
     .main-header p {
-        color: #f5f2eb;
-        margin: 8px 0 0 0;
-        font-size: 16px;
+        color: #e5e5e5;
+        margin: 5px 0 0 0;
+        font-size: 15px;
     }
     
     /* تنسيق صندوق تسجيل الدخول */
     .login-box {
-        max-width: 420px;
-        margin: 60px auto;
-        padding: 30px;
+        max-width: 400px;
+        margin: 50px auto;
+        padding: 25px;
         background-color: #ffffff;
-        border-radius: 12px;
-        border-top: 6px solid #c59b27;
-        border: 1px solid #e6dec9;
+        border-radius: 10px;
+        border-top: 5px solid #c59b27;
+        border: 1px solid #e0d6c3;
         text-align: center;
-        box-shadow: 0 6px 12px rgba(0,0,0,0.08);
-    }
-    .login-box h2 {
-        color: #14213d;
-        margin-bottom: 10px;
-    }
-    .login-box p {
-        color: #555555;
-        margin-bottom: 20px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
     
-    /* القائمة الجانبية */
-    section[data-testid="stSidebar"] {
-        background-color: #fdfcf7;
-        border-left: 1px solid #e6dec9;
+    /* تحسين وضوح النصوص والعناوين داخل التطبيق */
+    h1, h2, h3, h4, h5, h6, label, .stRadio div, .stSelectbox label, .stTextInput label, .stTextArea label, .stNumberInput label {
+        color: #0b132b !important;
+        font-weight: bold !important;
+    }
+    
+    /* تنسيق الكروت والأقسام */
+    .section-card {
+        background-color: #ffffff;
+        padding: 20px;
+        border-radius: 10px;
+        border: 1px solid #e0d6c3;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        margin-bottom: 20px;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -79,8 +81,8 @@ def check_login():
     if not st.session_state.logged_in:
         st.markdown("""
             <div class="login-box">
-                <h2>TIC TAC</h2>
-                <p>نظام صيانة المباني - تسجيل الدخول</p>
+                <h2 style="color: #14213d !important;">TIC TAC</h2>
+                <p style="color: #444444 !important;">نظام صيانة المباني - تسجيل الدخول</p>
             </div>
         """, unsafe_allow_html=True)
         
@@ -146,60 +148,72 @@ def init_db():
 conn = init_db()
 cursor = conn.cursor()
 
-st.sidebar.header("لوحة الإدخال والتشغيل")
-section_choice = st.sidebar.radio("اختر نوع الإدخال:", ["تسجيل طلب / مهمة صيانة", "تسجيل معاملة مالية / مشتريات"])
+# --- إعادة ترتيب الشاشة: خيارات الإدخال أولاً في الشاشة الرئيسية ---
+st.markdown("### 📝 لوحة الإدخال والتشغيل السريع")
 
-if section_choice == "تسجيل طلب / مهمة صيانة":
-    st.sidebar.subheader("إضافة أمر صيانة جديد")
-    building_name = st.sidebar.text_input("اسم المبنى / المشروع")
-    location = st.sidebar.text_input("رقم الغرفة / الطابق / الموقع")
-    issue_desc = st.sidebar.text_area("وصف العطل أو المطلوب تنفيذه")
-    priority = st.sidebar.selectbox("الأولوية", ["عادي", "متوسط", "طوارئ قصوى"])
-    assigned_to = st.sidebar.text_input("الفني المسؤول / المقاول")
-    task_status = st.sidebar.selectbox("حالة الطلب", ["جديد", "قيد العمل عليه", "مكتمل"])
-    task_date = st.sidebar.date_input("تاريخ الطلب", datetime.now()).strftime("%Y-%m-%d")
+col_input1, col_input2 = st.columns(2)
 
-    if st.sidebar.button("حفظ مهمة الصيانة"):
-        if building_name and issue_desc:
-            cursor.execute("INSERT INTO tasks (building_name, location, issue_desc, priority, assigned_to, status, date) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                           (building_name, location, issue_desc, priority, assigned_to, task_status, task_date))
-            conn.commit()
-            st.sidebar.success("تم حفظ مهمة الصيانة بنجاح!")
-            st.rerun()
-        else:
-            st.sidebar.error("الرجاء إدخال اسم المبنى ووصف الطلب على الأقل.")
+with col_input1:
+    with st.container():
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.subheader("إضافة أمر صيانة جديد")
+        building_name = st.text_input("اسم المبنى / المشروع")
+        location = st.text_input("رقم الغرفة / الطابق / الموقع")
+        issue_desc = st.text_area("وصف العطل أو المطلوب تنفيذه")
+        priority = st.selectbox("الأولوية", ["عادي", "متوسط", "طوارئ قصوى"])
+        assigned_to = st.text_input("الفني المسؤول / المقاول")
+        task_status = st.selectbox("حالة الطلب", ["جديد", "قيد العمل عليه", "مكتمل"])
+        task_date = st.date_input("تاريخ الطلب", datetime.now()).strftime("%Y-%m-%d")
 
-else:
-    st.sidebar.subheader("تسجيل معاملة مالية")
-    t_type_label = st.sidebar.selectbox("نوع المعاملة", ["إيراد (عقد صيانة / خدمة)", "مصروف / مشتريات قطع غيار"])
-    t_type = "revenue" if "إيراد" in t_type_label else "expense"
+        if st.button("حفظ مهمة الصيانة", use_container_width=True):
+            if building_name and issue_desc:
+                cursor.execute("INSERT INTO tasks (building_name, location, issue_desc, priority, assigned_to, status, date) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                               (building_name, location, issue_desc, priority, assigned_to, task_status, task_date))
+                conn.commit()
+                st.success("تم حفظ مهمة الصيانة بنجاح!")
+                st.rerun()
+            else:
+                st.error("الرجاء إدخال اسم المبنى ووصف الطلب على الأقل.")
+        st.markdown('</div>', unsafe_allow_html=True)
 
-    category = st.sidebar.selectbox("التصنيف", [
-        "عقد صيانة دورية", 
-        "إصلاح طارئ", 
-        "شراء قطع غيار ومواد", 
-        "أجور عمالة وفنيين", 
-        "مصروفات تشغيلية"
-    ])
+with col_input2:
+    with st.container():
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.subheader("تسجيل معاملة مالية / مشتريات")
+        t_type_label = st.selectbox("نوع المعاملة", ["إيراد (عقد صيانة / خدمة)", "مصروف / مشتريات قطع غيار"])
+        t_type = "revenue" if "إيراد" in t_type_label else "expense"
 
-    description = st.sidebar.text_input("الوصف / اسم العميل أو المورد")
-    amount = st.sidebar.number_input("المبلغ (ر.ق / ر.س)", min_value=0.0, format="%.2f")
-    date_str = st.sidebar.date_input("تاريخ المعاملة", datetime.now()).strftime("%Y-%m-%d")
+        category = st.selectbox("التصنيف", [
+            "عقد صيانة دورية", 
+            "إصلاح طارئ", 
+            "شراء قطع غيار ومواد", 
+            "أجور عمالة والفنيين", 
+            "مصروفات تشغيلية"
+        ])
 
-    if st.sidebar.button("حفظ المعاملة المالية"):
-        if description and amount > 0:
-            cursor.execute("INSERT INTO transactions (type, category, description, amount, date) VALUES (?, ?, ?, ?, ?)",
-                           (t_type, category, description, amount, date_str))
-            conn.commit()
-            st.sidebar.success("تم حفظ المعاملة المالية بنجاح!")
-            st.rerun()
-        else:
-            st.sidebar.error("الرجاء إدخال الوصف والمبلغ بشكل صحيح.")
+        description = st.text_input("الوصف / اسم العميل أو المورد")
+        amount = st.number_input("المبلغ (ر.ق / ر.س)", min_value=0.0, format="%.2f")
+        date_str = st.date_input("تاريخ المعاملة", datetime.now()).strftime("%Y-%m-%d")
 
-tab1, tab2 = st.tabs(["إدارة ومتابعة طلبات الصيانة", "التقارير المالية والمشتريات"])
+        if st.button("حفظ المعاملة المالية", use_container_width=True):
+            if description and amount > 0:
+                cursor.execute("INSERT INTO transactions (type, category, description, amount, date) VALUES (?, ?, ?, ?, ?)",
+                               (t_type, category, description, amount, date_str))
+                conn.commit()
+                st.success("تم حفظ المعاملة المالية بنجاح!")
+                st.rerun()
+            else:
+                st.error("الرجاء إدخال الوصف والمبلغ بشكل صحيح.")
+        st.markdown('</div>', unsafe_allow_html=True)
+
+st.markdown("---")
+
+# --- التقارير وسجلات المتابعة في الجانب (أو بتبويبات واضحة ومفصولة) ---
+st.markdown("### 📊 التقارير، السجلات، والمتابعة المالية")
+
+tab1, tab2 = st.tabs(["سجل طلبات وأعمال الصيانة", "التقارير المالية والمشتريات"])
 
 with tab1:
-    st.subheader("سجل طلبات وأعمال الصيانة للمباني")
     cursor.execute("SELECT id, building_name, location, issue_desc, priority, assigned_to, status, date FROM tasks ORDER BY id DESC")
     tasks_rows = cursor.fetchall()
     
@@ -210,8 +224,6 @@ with tab1:
         st.info("لا توجد طلبات صيانة مسجلة حتى الآن.")
 
 with tab2:
-    st.subheader("مؤشرات وملخص الحسابات والمشتريات")
-    
     cursor.execute("SELECT id, type, category, description, amount, date FROM transactions ORDER BY date DESC")
     trans_rows = cursor.fetchall()
     
@@ -219,10 +231,10 @@ with tab2:
     total_exp = sum([r[4] for r in trans_rows if r[1] == 'expense'])
     net_profit = total_rev - total_exp
 
-    col1, col2, col3 = st.columns(3)
-    col1.metric("إجمالي الإيرادات", f"{total_rev:,.2f}")
-    col2.metric("إجمالي المصروفات/المشتريات", f"{total_exp:,.2f}")
-    col3.metric("صافي الربح", f"{net_profit:,.2f}")
+    col_m1, col_m2, col_m3 = st.columns(3)
+    col_m1.metric("إجمالي الإيرادات", f"{total_rev:,.2f}")
+    col_m2.metric("إجمالي المصروفات/المشتريات", f"{total_exp:,.2f}")
+    col_m3.metric("صافي الربح", f"{net_profit:,.2f}")
 
     st.markdown("---")
     if trans_rows:
