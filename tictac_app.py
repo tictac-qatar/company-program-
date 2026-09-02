@@ -140,7 +140,7 @@ UNITS = [
 ]
 
 # ------------------------------------------------------------
-# CSS - Force Light Theme Everywhere (Fixing Selectboxes & Popovers)
+# CSS - Force Absolute Light Theme & Override Dark Popovers/Calendars
 # ------------------------------------------------------------
 st.markdown("""
 <style>
@@ -149,17 +149,18 @@ st.markdown("""
     color-scheme: light !important;
 }
 
-.stApp {
-    background: #ffffff !important;
+html, body, [data-testid="stAppViewContainer"], .stApp {
+    background-color: #ffffff !important;
     color: #111827 !important;
     font-family: Tahoma, Arial, sans-serif !important;
 }
 
-h1, h2, h3, h4, h5, h6, label, p, span, div {
+/* Force all general text elements to be dark and clear */
+h1, h2, h3, h4, h5, h6, label, p, span, div, .stMarkdown {
     color: #111827 !important;
 }
 
-/* Inputs, selects, and dropdown buttons */
+/* Inputs, text areas, date pickers, select boxes */
 input, textarea, select,
 div[data-baseweb="input"] input,
 div[data-baseweb="base-input"] input,
@@ -168,45 +169,63 @@ div[data-baseweb="base-input"] input,
 div[data-baseweb="input"],
 div[data-baseweb="select"] > div,
 div[data-baseweb="select"] div {
-    background: #f9fafb !important;
+    background-color: #f9fafb !important;
     color: #111827 !important;
     -webkit-text-fill-color: #111827 !important;
     border-color: #d1d5db !important;
 }
 
-/* Dropdown menus, popovers, calendars and options */
+/* Force calendars, date picker popovers, select dropdown menus to be WHITE with dark text */
 div[data-baseweb="popover"],
 div[data-baseweb="menu"],
 div[data-baseweb="calendar"],
+div[data-baseweb="select-dropdown"],
 ul[role="listbox"],
 div[role="listbox"],
 div[role="option"],
-li[role="option"] {
-    background: #ffffff !important;
+li[role="option"],
+div[class*="datepicker"],
+div[class*="calendar"] {
+    background-color: #ffffff !important;
     color: #111827 !important;
 }
 
-div[role="option"] *, span[role="option"] * {
+/* Force text inside calendar and dropdown menus to be dark */
+div[data-baseweb="calendar"] *,
+div[data-baseweb="popover"] *,
+div[data-baseweb="menu"] *,
+div[role="listbox"] *,
+div[role="option"] *,
+span[role="option"] * {
+    background-color: transparent !important;
     color: #111827 !important;
+    -webkit-text-fill-color: #111827 !important;
+}
+
+/* Highlight/Selected day in calendar */
+div[data-baseweb="calendar"] button[aria-selected="true"] {
+    background-color: #d97706 !important;
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
 }
 
 /* Buttons */
 div.stButton > button {
-    background: #1f2937 !important;
+    background-color: #1f2937 !important;
     color: #ffffff !important;
     border: 1px solid #111827 !important;
     border-radius: 8px !important;
     font-weight: bold !important;
 }
 div.stButton > button:hover {
-    background: #d97706 !important;
+    background-color: #d97706 !important;
     color: #ffffff !important;
     border-color: #d97706 !important;
 }
 
 /* Sidebar */
 section[data-testid="stSidebar"] {
-    background: #f3f4f6 !important;
+    background-color: #f3f4f6 !important;
     border-right: 1px solid #e5e7eb;
 }
 section[data-testid="stSidebar"] * {
@@ -214,7 +233,7 @@ section[data-testid="stSidebar"] * {
 }
 
 .main-header {
-    background: #f9fafb;
+    background-color: #f9fafb;
     padding: 18px 24px;
     border-radius: 14px;
     border: 1px solid #e5e7eb;
@@ -229,7 +248,7 @@ section[data-testid="stSidebar"] * {
     margin-bottom: 8px;
 }
 .card {
-    background: #f9fafb;
+    background-color: #f9fafb;
     padding: 20px;
     border-radius: 12px;
     border: 1px solid #e5e7eb;
