@@ -22,7 +22,7 @@ except ImportError:
 
 APP_DIR = Path(__file__).resolve().parent
 DB_FILE = str(APP_DIR / "tictac_pro_v4.db")
-LOGO_FILE = APP_DIR / "IMG_7478.JPG"
+LOGO_FILE = APP_DIR / "IMG_7478.JPeG"
 SESSION_SECRET = os.environ.get("TICTAC_SESSION_SECRET", "change-this-secret-in-production")
 
 NAVY = "#17324D"
