@@ -372,64 +372,6 @@ def init_db():
     )
     """)
 
-    # --------------------------------------------------------
-    # Safe schema migration for databases created by older
-    # versions of the TIC TAC app.
-    # CREATE TABLE IF NOT EXISTS does NOT add new columns to
-    # an existing SQLite table, so we add missing columns here.
-    # --------------------------------------------------------
-    migrations = {
-        "tasks": {
-            "client": "TEXT",
-            "job_type": "TEXT",
-            "planned_date": "TEXT",
-            "completion_date": "TEXT",
-            "estimated_cost": "REAL DEFAULT 0",
-            "actual_cost": "REAL DEFAULT 0",
-            "materials_used": "TEXT",
-            "notes": "TEXT",
-        },
-        "purchases": {
-            "unit": "TEXT",
-            "invoice_no": "TEXT",
-            "notes": "TEXT",
-        },
-        "employees": {
-            "phone": "TEXT",
-            "department": "TEXT",
-            "hire_date": "TEXT",
-            "salary": "REAL DEFAULT 0",
-            "status": "TEXT DEFAULT 'على رأس العمل'",
-            "notes": "TEXT",
-        },
-        "attendance": {
-            "emp_id": "INTEGER",
-            "notes": "TEXT",
-        },
-        "finance": {
-            "reference": "TEXT",
-        },
-    }
-
-    for table, columns in migrations.items():
-        existing = {
-            row[1] for row in cur.execute(f"PRAGMA table_info({table})").fetchall()
-        }
-        for column, definition in columns.items():
-            if column not in existing:
-                cur.execute(
-                    f"ALTER TABLE {table} ADD COLUMN {column} {definition}"
-                )
-
-    # Make old employee records usable by the new dashboard.
-    if "status" in {
-        row[1] for row in cur.execute("PRAGMA table_info(employees)").fetchall()
-    }:
-        cur.execute(
-            "UPDATE employees SET status='على رأس العمل' "
-            "WHERE status IS NULL OR TRIM(status)=''"
-        )
-
     conn.commit()
     return conn
 
