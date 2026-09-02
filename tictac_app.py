@@ -5,71 +5,92 @@ import pandas as pd
 
 st.set_page_config(page_title="Tic Tac for Building Maintenance", layout="wide")
 
-# تصميم نظيف وواضوح تام للخطوط والخلفيات البيضاء
+# تنسيق عام شامل لإجبار جميع النصوص والخطوط على أن تكون واضحة وقوية
 st.markdown("""
     <style>
+    /* خلفية التطبيق العامة */
     .stApp {
-        background-color: #fbf9f5;
-        color: #111111;
-        font-family: Tahoma, sans-serif;
+        background-color: #f7f4ed !important;
+        color: #0b132b !important;
+        font-family: Tahoma, sans-serif !important;
+    }
+    
+    /* إجبار كافة النصوص والعناوين والتسميات على أن تكون داكنة وواضحة جداً */
+    h1, h2, h3, h4, h5, h6, label, p, span, div, 
+    .stSelectbox label, .stTextInput label, .stTextArea label, .stNumberInput label, 
+    .stDateInput label, .stRadio label, .stCheckbox label {
+        color: #0b132b !important;
+        font-weight: bold !important;
+    }
+    
+    /* القائمة الجانبية: خلفية كحلي داكن ونصوص بيضاء ساطعة 100% للوضوح التام */
+    section[data-testid="stSidebar"] {
+        background-color: #14213d !important;
+    }
+    section[data-testid="stSidebar"] * {
+        color: #ffffff !important;
+    }
+    /* حقول الإدخال داخل القائمة الجانبية */
+    section[data-testid="stSidebar"] input {
+        color: #0b132b !important;
+        background-color: #ffffff !important;
     }
     
     /* الهيدر الرئيسي */
     .main-header {
-        background-color: #14213d;
-        color: #ffffff;
-        padding: 20px;
+        background-color: #14213d !important;
+        color: #ffffff !important;
+        padding: 22px;
         border-radius: 10px;
         border-bottom: 5px solid #c59b27;
         text-align: center;
-        margin-bottom: 20px;
+        margin-bottom: 25px;
     }
     .main-header h1 {
-        color: #c59b27;
-        font-size: 26px;
-        margin: 0;
-        font-weight: bold;
+        color: #c59b27 !important;
+        font-size: 28px !important;
+        margin: 0 !important;
     }
     .main-header p {
-        color: #ffffff;
-        margin: 5px 0 0 0;
-        font-size: 14px;
+        color: #ffffff !important;
+        font-size: 15px !important;
     }
     
     /* صندوق تسجيل الدخول */
     .login-box {
-        max-width: 400px;
-        margin: 40px auto;
-        padding: 25px;
-        background-color: #ffffff;
-        border-radius: 10px;
-        border-top: 5px solid #c59b27;
-        border: 1px solid #ddd;
+        max-width: 420px;
+        margin: 50px auto;
+        padding: 30px;
+        background-color: #ffffff !important;
+        border-radius: 12px;
+        border-top: 6px solid #c59b27;
+        border: 1px solid #dcd6c9;
         text-align: center;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
     
-    /* وضوح النصوص في الحقول */
-    h1, h2, h3, h4, h5, h6, label, .stRadio div, .stSelectbox label, .stTextInput label, .stTextArea label, .stNumberInput label {
-        color: #111111 !important;
-        font-weight: bold !important;
-    }
-    
-    /* كروت الإدخال */
+    /* كروت وحاويات الإدخال */
     .card-container {
-        background-color: #ffffff;
-        padding: 20px;
-        border-radius: 10px;
-        border: 1px solid #e0d6c3;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-        margin-bottom: 20px;
+        background-color: #ffffff !important;
+        padding: 25px !important;
+        border-radius: 12px !important;
+        border: 1px solid #dcd6c9 !important;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.06) !important;
+        margin-bottom: 25px !important;
+    }
+    
+    /* تحسين ألوان عناصر الإدخال والنصوص بداخله */
+    .stTextInput input, .stTextArea textarea, .stSelectbox div[data-baseweb="select"] {
+        background-color: #ffffff !important;
+        color: #0b132b !important;
+        border: 1px solid #b0a896 !important;
     }
     </style>
 """, unsafe_allow_html=True)
 
 # بيانات الدخول
 USERS = {
-    "tictac.qatar": "Azoz@123"
+    "Tictac.qatar": "Azoz@123"
 }
 
 def check_login():
@@ -80,7 +101,7 @@ def check_login():
         st.markdown("""
             <div class="login-box">
                 <h2 style="color: #14213d !important;">TIC TAC</h2>
-                <p style="color: #555555 !important;">نظام صيانة المباني - تسجيل الدخول</p>
+                <p style="color: #333333 !important;">نظام صيانة المباني - تسجيل الدخول</p>
             </div>
         """, unsafe_allow_html=True)
         
@@ -105,20 +126,15 @@ if not check_login():
 def init_db():
     conn = sqlite3.connect('tictac_pro.db', check_same_thread=False)
     cursor = conn.cursor()
-    # جدول مهام الصيانة
     cursor.execute('''CREATE TABLE IF NOT EXISTS tasks (
                         id INTEGER PRIMARY KEY AUTOINCREMENT, building TEXT, location TEXT, 
                         category TEXT, description TEXT, priority TEXT, technician TEXT, status TEXT, date TEXT)''')
-    # جدول المعاملات المالية
     cursor.execute('''CREATE TABLE IF NOT EXISTS finance (
                         id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT, category TEXT, description TEXT, amount REAL, date TEXT)''')
-    # جدول المشتريات
     cursor.execute('''CREATE TABLE IF NOT EXISTS purchases (
                         id INTEGER PRIMARY KEY AUTOINCREMENT, item_name TEXT, category TEXT, quantity INTEGER, price REAL, supplier TEXT, date TEXT)''')
-    # جدول الموظفين
     cursor.execute('''CREATE TABLE IF NOT EXISTS employees (
                         id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, qatari_id TEXT, role TEXT)''')
-    # جدول الحضور والغياب
     cursor.execute('''CREATE TABLE IF NOT EXISTS attendance (
                         id INTEGER PRIMARY KEY AUTOINCREMENT, emp_name TEXT, status TEXT, date TEXT)''')
     conn.commit()
@@ -139,7 +155,7 @@ if st.sidebar.button("تسجيل الخروج"):
     st.session_state.logged_in = False
     st.rerun()
 
-# القائمة الجانبية للفصل التام بين الأقسام
+# القائمة الجانبية
 st.sidebar.markdown("### 🗂️ أقسام النظام")
 menu = st.sidebar.radio("اختر القسم:", [
     "🛠️ إدخال مهام الصيانة", 
@@ -149,9 +165,7 @@ menu = st.sidebar.radio("اختر القسم:", [
     "📊 التقارير الشاملة"
 ])
 
-# -------------------------------------------------------------
 # 1. إدخال مهام الصيانة
-# -------------------------------------------------------------
 if menu == "🛠️ إدخال مهام الصيانة":
     st.markdown("### 🛠️ تسجيل وتفصيل مهام صيانة المباني")
     with st.container():
@@ -185,9 +199,7 @@ if menu == "🛠️ إدخال مهام الصيانة":
                 st.error("الرجاء إدخال اسم المبنى ووصف العطل على الأقل.")
         st.markdown('</div>', unsafe_allow_html=True)
 
-# -------------------------------------------------------------
 # 2. الإدخال المالي
-# -------------------------------------------------------------
 elif menu == "💰 الإدخال المالي":
     st.markdown("### 💰 الإدارة المالية وعقود الصيانة")
     with st.container():
@@ -219,9 +231,7 @@ elif menu == "💰 الإدخال المالي":
                 st.error("الرجاء إدخال البيان والمبلغ الصحيح.")
         st.markdown('</div>', unsafe_allow_html=True)
 
-# -------------------------------------------------------------
 # 3. إدخال المشتريات
-# -------------------------------------------------------------
 elif menu == "🛒 إدخال المشتريات":
     st.markdown("### 🛒 مشتريات قطع الغيار ومواد التشغيل")
     with st.container():
@@ -252,9 +262,7 @@ elif menu == "🛒 إدخال المشتريات":
                 st.error("الرجاء إدخال اسم الصنف والسعر.")
         st.markdown('</div>', unsafe_allow_html=True)
 
-# -------------------------------------------------------------
 # 4. شؤون الموظفين (حضور وغياب)
-# -------------------------------------------------------------
 elif menu == "👥 شؤون الموظفين (حضور وغياب)":
     st.markdown("### 👥 إدارة الموظفين وسجل الحضور والغياب")
     
@@ -296,9 +304,7 @@ elif menu == "👥 شؤون الموظفين (حضور وغياب)":
             st.info("لا يوجد موظفون مسجلون حالياً. يرجى إضافتهم من تبويب (إضافة موظفين جدد) أولاً.")
         st.markdown('</div>', unsafe_allow_html=True)
 
-# -------------------------------------------------------------
-# 5. التقارير الشاملة (معزولة بالكامل)
-# -------------------------------------------------------------
+# 5. التقارير الشاملة
 elif menu == "📊 التقارير الشاملة":
     st.markdown("### 📊 التقارير والسجلات التفصيلية الشاملة")
     
