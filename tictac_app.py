@@ -187,7 +187,7 @@ def has_access(user, area):
 def logo_header():
     img = ""
     if LOGO_FILE.exists(): img = f'<img src="data:image/jpeg;base64,{base64.b64encode(LOGO_FILE.read_bytes()).decode()}">' 
-    st.markdown(f'<div class="logo-card">{img}<div><div class="logo-title">TIC TAC لخدمات الصيانة والتشغيل الخارجي</div><div class="logo-subtitle">External Maintenance Contracts & Facilities Service Provider</div></div></div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="logo-card">{img}<div><div class="logo-title">TIC TAC  الصيانة  </div><div class="logo-subtitle">External Maintenance Contracts </div></div></div>', unsafe_allow_html=True)
 
 def exports(df, name, title=None):
     if df is None or df.empty: return
@@ -207,23 +207,37 @@ def pdf_bytes(df, title):
     table = Table(data, repeatRows=1); table.setStyle(TableStyle([("BACKGROUND", (0,0), (-1,0), colors.HexColor(NAVY)), ("TEXTCOLOR", (0,0), (-1,0), colors.white), ("GRID", (0,0), (-1,-1), .25, colors.HexColor("#D0D5DD")), ("FONTSIZE", (0,0), (-1,-1), 7), ("VALIGN", (0,0), (-1,-1), "MIDDLE")]))
     doc.build([Paragraph(title, styles["Title"]), Spacer(1, 12), table]); return bio.getvalue()
 
-# دالة ذكية لعرض الجدول بعد تعبئة البيانات مع زر حذف خاص بالمدير فقط
-def admin_managed_table(title, sql, table_name, id_col, label_col, filename, params=()):
+# دالة ذكية لعرض الجدول وتوفير أزرار حذف نهائي لكل سجل مباشرة (نفس فكرة قسم المستخدمين)
+def admin_managed_table(title, sql, table_name, id_col, filename, params=()):
     st.subheader(title)
     df = q(sql, params)
-    st.dataframe(df, use_container_width=True, hide_index=True)
     exports(df, filename, title)
     
-    # ميزة الحذف المخصصة لمدير النظام فقط في أسفل الجدول
-    if user.get("role") == "مدير النظام" and not df.empty:
-        with st.expander(f"🛠️ لوحة تحكم مدير النظام: حذف سجل من ({title})"):
-            records_map = {f"معرف رقم ({row[id_col]}): {str(row[label_col])[:50]}": int(row[id_col]) for _, row in df.iterrows()}
-            selected_record = st.selectbox("اختر السجل المراد حذفه نهائياً", list(records_map.keys()), key=f"del_sel_{table_name}")
-            if st.button("حذف السجل المحدد نهائياً", key=f"del_btn_{table_name}", use_container_width=True):
-                rec_id = records_map[selected_record]
+    if df.empty:
+        st.info("لا توجد سجلات لعرضها.")
+        return
+
+    if user.get("role") == "مدير النظام":
+        st.markdown("---")
+        header_cols = st.columns([4, 1])
+        header_cols[0].markdown("**بيانات السجل**")
+        header_cols[1].markdown("**إجراء الحذف**")
+        st.markdown("---")
+
+        for _, row in df.iterrows():
+            rec_id = int(row[id_col])
+            cols = st.columns([4, 1])
+            
+            # عرض ملخص مبسط لأول عمودين أو ثلاثة بجانب زر الحذف
+            summary_text = " | ".join([f"{col}: {str(row[col])}" for col in df.columns[:3] if col != id_col])
+            cols[0].text(f"معرف (#{rec_id}) - {summary_text}")
+            
+            if cols[1].button("حذف نهائي", key=f"del_{table_name}_{rec_id}", use_container_width=True):
                 x(f"DELETE FROM {table_name} WHERE {id_col}=?", (rec_id,))
-                st.success("تم حذف السجل بنجاح.")
+                st.success(f"تم حذف السجل رقم {rec_id} بنجاح.")
                 st.rerun()
+    else:
+        st.dataframe(df, use_container_width=True, hide_index=True)
 
 def metric(label, value): return f'<div class="metric-card"><div class="metric-label">{label}</div><div class="metric-value">{value}</div></div>'
 
@@ -253,7 +267,7 @@ if menu == "لوحة التحكم":
     for c, label, val in zip(cols, ["المخزون وقطع الغيار", "المشتريات", "طلبات الخدمة وأوامر الصيانة", "العقود السارية", "مواقع العملاء"], vals):
         c.markdown(metric(label, val), unsafe_allow_html=True)
         
-    admin_managed_table("طلبات خدمات الصيانة النشطة للعملاء", "SELECT id, ticket_no AS 'رقم الطلب', priority AS 'الأولوية', status AS 'حالة الطلب', description AS 'وصف الخدمة', report_date AS 'تاريخ الاستلام' FROM tasks WHERE status NOT IN ('مكتمل ومسلم للعميل','ملغي') ORDER BY id DESC LIMIT 20", "tasks", "id", "ticket_no", "client_service_requests")
+    admin_managed_table("طلبات خدمات الصيانة النشطة للعملاء", "SELECT id, ticket_no, priority, status, description FROM tasks WHERE status NOT IN ('مكتمل ومسلم للعميل','ملغي') ORDER BY id DESC LIMIT 20", "tasks", "id", "client_service_requests")
 
 elif menu == "طلبات الخدمة وأوامر الصيانة":
     st.title("طلبات الخدمة وأوامر الصيانة الخارجية للعملاء")
@@ -271,7 +285,7 @@ elif menu == "طلبات الخدمة وأوامر الصيانة":
             x("INSERT INTO tasks(ticket_no,building_id,asset_id,location,room,system_type,job_type,priority,description,technician_id,supervisor_id,report_date,assignment_date,sla_hours,status,root_cause,corrective_action,safety_required,notes) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", (ticket,bm[bname],am.get(aname),location,room,system,job,priority,desc,em.get(tech),em.get(sup),date.today().isoformat(),date.today().isoformat(),sla,status,root,action,int(safety),notes))
             st.success(f"تم تسجيل طلب الخدمة برقم {ticket}")
     
-    admin_managed_table("سجل طلبات وخدمات العملاء", "SELECT id, ticket_no AS 'رقم الطلب', description AS 'الوصف', status AS 'الحالة' FROM tasks ORDER BY id DESC", "tasks", "id", "ticket_no", "client_service_orders")
+    admin_managed_table("سجل طلبات وخدمات العملاء", "SELECT id, ticket_no, description, status FROM tasks ORDER BY id DESC", "tasks", "id", "client_service_orders")
 
 elif menu == "الأصول والمعدات":
     st.title("أصول ومعدات العملاء بالمواقع الخارجية")
@@ -290,7 +304,7 @@ elif menu == "الأصول والمعدات":
                     st.success("تم حفظ الأصل بنجاح")
                 except sqlite3.IntegrityError: st.error("كود الأصل مستخدم مسبقاً")
     with tab2:
-        admin_managed_table("قائمة أصول العملاء", "SELECT id, asset_code AS 'الكود', name AS 'الأصل', status AS 'الحالة' FROM assets ORDER BY id DESC", "assets", "id", "name", "client_assets")
+        admin_managed_table("قائمة أصول العملاء", "SELECT id, asset_code, name, status FROM assets ORDER BY id DESC", "assets", "id", "client_assets")
 
 elif menu == "المواد وقطع الغيار":
     st.title("المواد وقطع الغيار بمستودع الشركة")
@@ -305,7 +319,7 @@ elif menu == "المواد وقطع الغيار":
                 x("INSERT INTO materials(item_code,arabic_name,english_name,category,unit,quantity,min_quantity,reorder_point,purchase_price,avg_cost,supplier,storage_location,part_no,notes) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",(code,name,english,category,unit,qty,minimum,reorder,price,cost,supplier,storage,part,notes))
                 st.success("تم حفظ الصنف")
             except sqlite3.IntegrityError: st.error("كود المادة موجود مسبقاً")
-    admin_managed_table("مستودع قطع الغيار", "SELECT id, item_code AS 'الكود', arabic_name AS 'المادة', quantity AS 'الرصيد' FROM materials ORDER BY id DESC", "materials", "id", "arabic_name", "materials_stock")
+    admin_managed_table("مستودع قطع الغيار", "SELECT id, item_code, arabic_name, quantity FROM materials ORDER BY id DESC", "materials", "id", "materials_stock")
 
 elif menu == "حركة المخزون":
     st.title("حركة المخزون والصرف على مواقع العملاء")
@@ -320,7 +334,7 @@ elif menu == "حركة المخزون":
                 x("UPDATE materials SET quantity=? WHERE id=?",(new,mid))
                 x("INSERT INTO material_transactions(material_id,transaction_type,quantity,unit_cost,reference,date,notes) VALUES(?,?,?,?,?,?,?)",(mid,typ,qty,cost,ref,date.today().isoformat(),notes))
                 st.success(f"تم تحديث رصيد الصنف ليصبح {new}")
-    admin_managed_table("حركة المخزون", "SELECT id, transaction_type AS 'الحركة', reference AS 'المرجع', date AS 'التاريخ' FROM material_transactions ORDER BY id DESC", "material_transactions", "id", "reference", "inventory_movement")
+    admin_managed_table("حركة المخزون", "SELECT id, transaction_type, reference, date FROM material_transactions ORDER BY id DESC", "material_transactions", "id", "inventory_movement")
 
 elif menu == "المشتريات":
     st.title("مشتريات مواد ومعدات مشاريع العملاء")
@@ -336,7 +350,7 @@ elif menu == "المشتريات":
             if status not in ["مسودة","ملغي"]: 
                 x("INSERT INTO finance(type,category,description,amount,date,reference) VALUES('مصروف','مشتريات مواد وقطع غيار لمشاريع العملاء',?,?,?,?)",(f"أمر شراء {po} - {item}",total,date.today().isoformat(),po))
             st.success(f"تم اعتماد وحفظ أمر الشراء برقم {po}")
-    admin_managed_table("سجل مشتريات الشركة", "SELECT id, po_no AS 'رقم PO', item_name AS 'الصنف', total_amount AS 'الإجمالي' FROM purchases ORDER BY id DESC", "purchases", "id", "po_no", "purchases_report")
+    admin_managed_table("سجل مشتريات الشركة", "SELECT id, po_no, item_name, total_amount FROM purchases ORDER BY id DESC", "purchases", "id", "purchases_report")
 
 elif menu == "مواقع العملاء":
     st.title("إدارة عملاء ومواقع الصيانة الخارجية")
@@ -348,7 +362,7 @@ elif menu == "مواقع العملاء":
         if submit and name.strip() and client.strip(): 
             x("INSERT INTO buildings(name,client,address,contact_person,contact_phone,floors_count,systems_installed,notes) VALUES(?,?,?,?,?,?,?,?)",(name,client,address,contact,phone,floors,systems,notes))
             st.success("تم حفظ موقع العميل بنجاح")
-    admin_managed_table("قائمة مواقع وعملاء الصيانة", "SELECT id, name AS 'الموقع', client AS 'العميل', address AS 'العنوان' FROM buildings ORDER BY id DESC", "buildings", "id", "name", "clients_buildings")
+    admin_managed_table("قائمة مواقع وعملاء الصيانة", "SELECT id, name, client, address FROM buildings ORDER BY id DESC", "buildings", "id", "clients_buildings")
 
 elif menu == "عقود الصيانة للعملاء":
     st.title("عقود الصيانة والتشغيل مع العملاء")
@@ -365,7 +379,7 @@ elif menu == "عقود الصيانة للعملاء":
                 x("INSERT INTO finance(type,category,description,amount,date,reference,contract_id) VALUES('إيراد','إيرادات عقود الصيانة الدورية السنوية',?,?,?,?,?)",(f"عقد صيانة عميل {no}",value,start.isoformat(),no,cid))
                 st.success("تم حفظ العقد وتسجيل إيراداته المتوقعة بالميزانية")
             except sqlite3.IntegrityError: st.error("رقم العقد مسجل مسبقاً")
-    admin_managed_table("سجل عقود العملاء", "SELECT id, contract_no AS 'رقم العقد', value AS 'القيمة', status AS 'الحالة' FROM contracts ORDER BY id DESC", "contracts", "id", "contract_no", "client_contracts")
+    admin_managed_table("سجل عقود العملاء", "SELECT id, contract_no, value, status FROM contracts ORDER BY id DESC", "contracts", "id", "client_contracts")
 
 elif menu == "الموظفون":
     st.title("فريق العمل والكادر الفني والإداري")
@@ -378,7 +392,7 @@ elif menu == "الموظفون":
         if submit and name.strip(): 
             x("INSERT INTO employees(name,national_id,phone,role,department,hire_date,salary,status,skills,notes) VALUES(?,?,?,?,?,?,?,?,?,?)",(name,nid,phone,role,dept,hire.isoformat(),salary,status,skills,notes))
             st.success("تم حفظ بيانات الموظف")
-    admin_managed_table("قائمة الموظفين", "SELECT id, name AS 'الموظف', role AS 'الوظيفة', salary AS 'الراتب' FROM employees ORDER BY id DESC", "employees", "id", "name", "employees_report")
+    admin_managed_table("قائمة الموظفين", "SELECT id, name, role, salary FROM employees ORDER BY id DESC", "employees", "id", "employees_report")
 
 elif menu == "الحضور والدوام":
     st.title("حضور ودوام الكوادر الفنية والميدانية")
@@ -391,7 +405,7 @@ elif menu == "الحضور والدوام":
                 x("INSERT INTO attendance(emp_id,status,date,work_hours,notes) VALUES(?,?,?,?,?)",(em[en],status,d.isoformat(),hours,notes))
                 st.success("تم تسجيل الحضور بنجاح")
             except sqlite3.IntegrityError: st.error("تم تسجيل الحضور مسبقاً لهذا الموظف في هذا التاريخ")
-    admin_managed_table("سجل الحضور والدوام", "SELECT id, status AS 'الحالة', date AS 'التاريخ', work_hours AS 'الساعات' FROM attendance ORDER BY id DESC", "attendance", "id", "date", "attendance_report")
+    admin_managed_table("سجل الحضور والدوام", "SELECT id, status, date, work_hours FROM attendance ORDER BY id DESC", "attendance", "id", "attendance_report")
 
 elif menu == "الحسابات والفواتير":
     st.title("الحسابات المالية والفواتير وإيرادات العقود")
@@ -423,7 +437,7 @@ elif menu == "الحسابات والفواتير":
     c2.markdown(metric("إجمالي المصروفات التشغيلية", f"{exp:,.2f} ر.ق"), unsafe_allow_html=True)
     c3.markdown(metric("صافي أرباح الشركة", f"{rev-exp:,.2f} ر.ق"), unsafe_allow_html=True)
     
-    admin_managed_table("السجل المالي الشامل", "SELECT id, type AS 'النوع', description AS 'البيان', amount AS 'المبلغ', date AS 'التاريخ' FROM finance ORDER BY date DESC", "finance", "id", "description", "finance_report")
+    admin_managed_table("السجل المالي الشامل", "SELECT id, type, description, amount, date FROM finance ORDER BY date DESC", "finance", "id", "finance_report")
 
 elif menu == "التقارير":
     st.title("التقارير الإدارية والمالية الشاملة")
@@ -497,4 +511,4 @@ elif menu == "إدارة المستخدمين":
             cols[5].text("-")
 
 st.sidebar.markdown("---")
-st.sidebar.caption("TIC TAC • External Services & Facilities • v4.2")
+st.sidebar.caption("TIC TAC • External Services & Facilities • v4.3")
