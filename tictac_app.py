@@ -140,33 +140,44 @@ UNITS = [
 ]
 
 # ------------------------------------------------------------
-# CSS - Bright, Clear & Professional Theme (No Dark Backgrounds)
+# CSS - Force Light Theme Everywhere (Fixing Selectboxes & Popovers)
 # ------------------------------------------------------------
 st.markdown("""
 <style>
+/* Force Light Mode variables & color schemes */
+:root {
+    color-scheme: light !important;
+}
+
 .stApp {
     background: #ffffff !important;
     color: #111827 !important;
     font-family: Tahoma, Arial, sans-serif !important;
 }
+
 h1, h2, h3, h4, h5, h6, label, p, span, div {
     color: #111827 !important;
 }
+
+/* Inputs, selects, and dropdown buttons */
 input, textarea, select,
 div[data-baseweb="input"] input,
 div[data-baseweb="base-input"] input,
 .stTextInput input,
 .stPasswordInput input,
 div[data-baseweb="input"],
-div[data-baseweb="select"] > div {
+div[data-baseweb="select"] > div,
+div[data-baseweb="select"] div {
     background: #f9fafb !important;
     color: #111827 !important;
     -webkit-text-fill-color: #111827 !important;
-    border: 1px solid #d1d5db !important;
-    border-radius: 6px !important;
+    border-color: #d1d5db !important;
 }
+
+/* Dropdown menus, popovers, calendars and options */
 div[data-baseweb="popover"],
 div[data-baseweb="menu"],
+div[data-baseweb="calendar"],
 ul[role="listbox"],
 div[role="listbox"],
 div[role="option"],
@@ -174,6 +185,12 @@ li[role="option"] {
     background: #ffffff !important;
     color: #111827 !important;
 }
+
+div[role="option"] *, span[role="option"] * {
+    color: #111827 !important;
+}
+
+/* Buttons */
 div.stButton > button {
     background: #1f2937 !important;
     color: #ffffff !important;
@@ -186,6 +203,8 @@ div.stButton > button:hover {
     color: #ffffff !important;
     border-color: #d97706 !important;
 }
+
+/* Sidebar */
 section[data-testid="stSidebar"] {
     background: #f3f4f6 !important;
     border-right: 1px solid #e5e7eb;
@@ -193,6 +212,7 @@ section[data-testid="stSidebar"] {
 section[data-testid="stSidebar"] * {
     color: #1f2937 !important;
 }
+
 .main-header {
     background: #f9fafb;
     padding: 18px 24px;
