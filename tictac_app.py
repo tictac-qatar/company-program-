@@ -5,17 +5,17 @@ import pandas as pd
 
 st.set_page_config(page_title="Tic Tac for Building Maintenance", layout="wide")
 
-# فرض الوضع الفاتح وتعديل جميع ألوان الحقول والقوائم المنسدلة لتجنب مشكلة الشاشة السوداء في الجوال
+# إزالة الخلفيات الداكنة بالكامل وتوحيد الخطوط باللون الكحلي الداكن
 st.markdown("""
     <style>
-    /* فرض خلفية فاتحة ونصوص داكنة على التطبيق بأكمله */
+    /* فرض خلفية فاتحة ونصوص كحلي داكن على التطبيق بأكمله */
     .stApp {
         background-color: #f7f4ed !important;
         color: #0b132b !important;
         font-family: Tahoma, sans-serif !important;
     }
     
-    /* إجبار كافة النصوص والعناوين والتسميات على الوضوح */
+    /* إجبار كافة النصوص والعناوين والتسميات على اللون الكحلي الداكن */
     h1, h2, h3, h4, h5, h6, label, p, span, div, 
     .stSelectbox label, .stTextInput label, .stTextArea label, .stNumberInput label, 
     .stDateInput label, .stRadio label, .stCheckbox label {
@@ -23,7 +23,7 @@ st.markdown("""
         font-weight: bold !important;
     }
     
-    /* إصلاح خلفية ونصوص حقول الإدخال والقوائم المنسدلة في الجوال */
+    /* حقول الإدخال والقوائم المنسدلة بخلفية بيضاء ونصوص كحلي داكن */
     input, textarea, select {
         background-color: #ffffff !important;
         color: #0b132b !important;
@@ -43,35 +43,38 @@ st.markdown("""
         background-color: #ffffff !important;
     }
     
-    /* القائمة الجانبية */
+    /* القائمة الجانبية بلون فاتح ونصوص كحلي داكن */
     section[data-testid="stSidebar"] {
-        background-color: #14213d !important;
+        background-color: #f0ece1 !important;
+        border-left: 1px solid #dcd6c9;
     }
     section[data-testid="stSidebar"] * {
-        color: #ffffff !important;
+        color: #0b132b !important;
     }
     section[data-testid="stSidebar"] input {
         color: #0b132b !important;
         background-color: #ffffff !important;
     }
     
-    /* الهيدر الرئيسي */
+    /* الهيدر الرئيسي بخلفية فاتحة */
     .main-header {
-        background-color: #14213d !important;
-        color: #ffffff !important;
+        background-color: #ffffff !important;
+        color: #0b132b !important;
         padding: 22px;
         border-radius: 10px;
-        border-bottom: 5px solid #c59b27;
+        border: 1px solid #dcd6c9;
+        border-top: 5px solid #c59b27;
         text-align: center;
         margin-bottom: 25px;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.05);
     }
     .main-header h1 {
-        color: #c59b27 !important;
+        color: #0b132b !important;
         font-size: 28px !important;
         margin: 0 !important;
     }
     .main-header p {
-        color: #ffffff !important;
+        color: #0b132b !important;
         font-size: 15px !important;
     }
     
@@ -112,8 +115,8 @@ def check_login():
     if not st.session_state.logged_in:
         st.markdown("""
             <div class="login-box">
-                <h2 style="color: #14213d !important;">TIC TAC</h2>
-                <p style="color: #333333 !important;">نظام صيانة المباني - تسجيل الدخول</p>
+                <h2 style="color: #0b132b !important;">TIC TAC</h2>
+                <p style="color: #0b132b !important;">نظام صيانة المباني - تسجيل الدخول</p>
             </div>
         """, unsafe_allow_html=True)
         
