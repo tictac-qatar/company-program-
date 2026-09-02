@@ -45,7 +45,7 @@ MAIN_MENU = ["لوحة التحكم", "طلبات الخدمة وأوامر ال
 MENU_AREAS = {"لوحة التحكم":"dashboard", "طلبات الخدمة وأوامر الصيانة":"maintenance", "الأصول والمعدات":"maintenance", "المواد وقطع الغيار":"inventory", "حركة المخزون":"inventory", "المشتريات":"purchases", "مواقع العملاء":"buildings", "عقود الصيانة للعملاء":"contracts", "الموظفون":"hr", "الحضور والدوام":"hr", "الحسابات والفواتير":"finance", "التقارير":"reports"}
 LEGACY_PERMISSIONS = {"مدير العقود والعملاء": ["dashboard", "maintenance", "buildings", "contracts", "reports"], "مشرف صيانة ميدانية": ["dashboard", "maintenance", "reports"], "مهندس دعم فني": ["dashboard", "maintenance", "reports"], "مسؤول مشتريات": ["dashboard", "purchases", "inventory", "reports"], "أمين مستودع": ["dashboard", "inventory", "purchases", "reports"], "محاسب": ["dashboard", "finance", "contracts", "reports"], "مسؤول موارد بشرية": ["dashboard", "hr", "reports"]}
 
-st.set_page_config(page_title="TIC TAC | نظام إدارة خدمات الصيانة الخارجية", page_icon="🏢", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="TIC TAC | نظام إدارة خدمات الصيانة ", page_icon="🏢", layout="wide", initial_sidebar_state="expanded")
 
 st.markdown(f"""
 <style>
