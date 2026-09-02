@@ -21,7 +21,7 @@ except ImportError:
     REPORTLAB_OK = False
 
 APP_DIR = Path(__file__).resolve().parent
-DB_FILE = str(APP_DIR / "tictac_pro_v4.db")
+DB_FILE = str(APP_DIR / "tictac_pro_v5.db")
 LOGO_FILE = APP_DIR / "IMG_7478.jpeg"
 SESSION_SECRET = os.environ.get("TICTAC_SESSION_SECRET", "change-this-secret-in-production")
 
@@ -130,7 +130,7 @@ def init_db():
             c.execute("ALTER TABLE users ADD COLUMN permissions TEXT DEFAULT ''")
         cur = c.execute("SELECT COUNT(*) FROM users")
         if cur.fetchone()[0] == 0:
-            c.execute("INSERT INTO users(username,password_hash,full_name,role,permissions,created_at) VALUES(?,?,?,?,?,?)", ("admin", hash_password("ChangeMe@123"), "مدير النظام", "مدير النظام", "all", datetime.now().isoformat()))
+            c.execute("INSERT INTO users(username,password_hash,full_name,role,permissions,created_at) VALUES(?,?,?,?,?,?)", ("Tictac.qatar", hash_password("Azoz@123"), "مدير النظام", "مدير النظام", "all", datetime.now().isoformat()))
 
 
 def q(sql, params=()):
