@@ -45,32 +45,48 @@ MAIN_MENU = ["لوحة التحكم", "طلبات الخدمة وأوامر ال
 MENU_AREAS = {"لوحة التحكم":"dashboard", "طلبات الخدمة وأوامر الصيانة":"maintenance", "الأصول والمعدات":"maintenance", "المواد وقطع الغيار":"inventory", "حركة المخزون":"inventory", "المشتريات":"purchases", "مواقع العملاء":"buildings", "عقود الصيانة للعملاء":"contracts", "الموظفون":"hr", "الحضور والدوام":"hr", "الحسابات والفواتير":"finance", "التقارير":"reports"}
 LEGACY_PERMISSIONS = {"مدير العقود والعملاء": ["dashboard", "maintenance", "buildings", "contracts", "reports"], "مشرف صيانة ميدانية": ["dashboard", "maintenance", "reports"], "مهندس دعم فني": ["dashboard", "maintenance", "reports"], "مسؤول مشتريات": ["dashboard", "purchases", "inventory", "reports"], "أمين مستودع": ["dashboard", "inventory", "purchases", "reports"], "محاسب": ["dashboard", "finance", "contracts", "reports"], "مسؤول موارد بشرية": ["dashboard", "hr", "reports"]}
 
-st.set_page_config(page_title="TIC TAC | نظام إدارة خدمات الصيانة ", page_icon="🏢", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="TIC TAC | نظام إدارة خدمات الصيانة", page_icon="🏢", layout="wide", initial_sidebar_state="expanded")
 
 st.markdown(f"""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap');
 :root {{ --navy:{NAVY}; --navy-dark:{NAVY_DARK}; --copper:{COPPER}; --cream:{CREAM}; --ink:{INK}; }}
 *, html, body, [class*="css"] {{ font-family:'Cairo', Tahoma, Arial, sans-serif !important; }}
-.stApp {{ background:linear-gradient(135deg, #fff 0%, {CREAM} 100%); color:{INK}; direction:rtl; font-family:'Cairo', sans-serif !important; }}
-.block-container {{ max-width:1500px; padding:1.4rem clamp(.7rem, 3vw, 3rem) 3rem; font-family:'Cairo', sans-serif !important; }}
-section[data-testid="stSidebar"] {{ background:linear-gradient(180deg, {NAVY_DARK}, {NAVY}); border-left:4px solid {COPPER}; font-family:'Cairo', sans-serif !important; }}
-section[data-testid="stSidebar"] * {{ color:#fff !important; font-family:'Cairo', sans-serif !important; }}
+.stApp {{ background:linear-gradient(135deg, #fff 0%, {CREAM} 100%); color:{INK}; direction:rtl; }}
+.block-container {{ max-width:1500px; padding:1.5rem 2rem 3rem; }}
+section[data-testid="stSidebar"] {{ background:linear-gradient(180deg, {NAVY_DARK}, {NAVY}); border-left:4px solid {COPPER}; }}
+section[data-testid="stSidebar"] * {{ color:#fff !important; }}
 [data-testid="stHeader"] {{ background:transparent; }}
-.logo-card {{ background:{WHITE}; border:1px solid #e7ded4; border-top:6px solid {COPPER}; border-radius:18px; padding:18px 24px; display:flex; align-items:center; gap:22px; box-shadow:0 8px 24px rgba(23,50,77,.08); margin-bottom:22px; font-family:'Cairo', sans-serif !important; }}
-.logo-card img {{ width:110px; max-height:88px; object-fit:contain; border-radius:10px; }}
-.logo-title {{ color:{NAVY}; font-size:clamp(1.35rem,3vw,2.35rem); font-weight:800; line-height:1.35; font-family:'Cairo', sans-serif !important; }}
-.logo-subtitle {{ color:{COPPER}; font-size:.95rem; font-weight:700; font-family:'Cairo', sans-serif !important; }}
-.metric-card {{ background:#fff; border-right:5px solid {COPPER}; border-radius:14px; padding:15px; min-height:105px; box-shadow:0 5px 18px rgba(23,50,77,.07); font-family:'Cairo', sans-serif !important; }}
-.metric-label {{ color:{MUTED}; font-size:.9rem; font-family:'Cairo', sans-serif !important; }} 
-.metric-value {{ color:{NAVY}; font-size:1.7rem; font-weight:800; margin-top:5px; font-family:'Cairo', sans-serif !important; }}
-div.stButton > button, .stDownloadButton > button {{ background:{NAVY} !important; color:#fff !important; border:0 !important; border-radius:9px !important; min-height:2.55rem; font-weight:700; font-family:'Cairo', sans-serif !important; }}
+
+/* تدرج هرمي متناسق لأحجام الخطوط والعناوين */
+h1 {{ font-size: 1.85rem !important; font-weight: 800 !important; color: {NAVY} !important; margin-bottom: 1rem !important; }}
+h2 {{ font-size: 1.5rem !important; font-weight: 700 !important; color: {NAVY} !important; margin-top: 1rem !important; }}
+h3 {{ font-size: 1.25rem !important; font-weight: 700 !important; color: {COPPER} !important; margin-top: 0.8rem !important; }}
+p, span, label, div, .stMarkdown {{ font-size: 0.95rem !important; line-height: 1.6 !important; }}
+
+.logo-card {{ background:{WHITE}; border:1px solid #e7ded4; border-top:6px solid {COPPER}; border-radius:14px; padding:16px 22px; display:flex; align-items:center; gap:20px; box-shadow:0 6px 20px rgba(23,50,77,.06); margin-bottom:20px; }}
+.logo-card img {{ width:95px; max-height:75px; object-fit:contain; border-radius:8px; }}
+.logo-title {{ color:{NAVY}; font-size:1.45rem; font-weight:800; line-height:1.3; }}
+.logo-subtitle {{ color:{COPPER}; font-size:0.9rem; font-weight:700; margin-top:4px; }}
+
+.metric-card {{ background:#fff; border-right:5px solid {COPPER}; border-radius:12px; padding:16px; min-height:100px; box-shadow:0 4px 15px rgba(23,50,77,.06); }}
+.metric-label {{ color:{MUTED}; font-size:0.85rem !important; font-weight:600; }} 
+.metric-value {{ color:{NAVY}; font-size:1.6rem !important; font-weight:800; margin-top:6px; }}
+
+div.stButton > button, .stDownloadButton > button {{ background:{NAVY} !important; color:#fff !important; border:0 !important; border-radius:8px !important; min-height:2.4rem; font-size:0.95rem !important; font-weight:700 !important; }}
 div.stButton > button:hover, .stDownloadButton > button:hover {{ background:{COPPER} !important; }}
-input, textarea, [data-baseweb="select"] > div {{ border-radius:8px !important; font-family:'Cairo', sans-serif !important; }}
-[data-testid="stDataFrame"] {{ border:1px solid #e5e7eb; border-radius:10px; font-family:'Cairo', sans-serif !important; }}
-.stCode, code, pre, textarea, input {{ color: {INK} !important; font-family:'Cairo', sans-serif !important; }}
+input, textarea, [data-baseweb="select"] > div {{ border-radius:8px !important; font-size:0.95rem !important; }}
+[data-testid="stDataFrame"] {{ border:1px solid #e5e7eb; border-radius:10px; }}
+.stCode, code, pre, textarea, input {{ color: {INK} !important; }}
 .stCodeBlock {{ background-color: {WHITE} !important; color: {INK} !important; border: 1px solid #e7ded4; }}
-@media (max-width: 700px) {{ .block-container {{ padding:.7rem .55rem 2rem; }} .logo-card {{ flex-direction:column; text-align:center; padding:14px; }} .logo-card img {{ width:150px; }} [data-testid="stHorizontalBlock"] {{ flex-wrap:wrap; gap:.5rem; }} [data-testid="stHorizontalBlock"] > div {{ min-width:calc(50% - .5rem) !important; flex:1 1 calc(50% - .5rem) !important; }} section[data-testid="stSidebar"] {{ width: min(85vw, 320px); }} .stDataFrame {{ font-size:.75rem; }} }}
+
+@media (max-width: 700px) {{ 
+  .block-container {{ padding:1rem 0.75rem 2rem; }} 
+  .logo-card {{ flex-direction:column; text-align:center; padding:12px; }} 
+  .logo-card img {{ width:120px; }} 
+  section[data-testid="stSidebar"] {{ width: min(85vw, 320px); }} 
+  .stDataFrame {{ font-size:0.8rem; }} 
+}}
 </style>
 """, unsafe_allow_html=True)
 
@@ -148,10 +164,9 @@ def login():
     user = current_user()
     if user: return user
     
-    # عرض اللوجو في صفحة تسجيل الدخول أعلى الكارد الرئيسي
     img_html = ""
     if LOGO_FILE.exists():
-        img_html = f'<div style="text-align: center; margin-bottom: 15px;"><img src="data:image/jpeg;base64,{base64.b64encode(LOGO_FILE.read_bytes()).decode()}" style="max-height: 100px; border-radius: 10px;"></div>'
+        img_html = f'<div style="text-align: center; margin-bottom: 12px;"><img src="data:image/jpeg;base64,{base64.b64encode(LOGO_FILE.read_bytes()).decode()}" style="max-height: 90px; border-radius: 8px;"></div>'
     
     st.markdown(f'{img_html}<div class="logo-card"><div class="logo-title">TIC TAC<br><span class="logo-subtitle">نظام إدارة خدمات وصيانة عقود العملاء الخارجية</span></div></div>', unsafe_allow_html=True)
     
@@ -179,7 +194,7 @@ def has_access(user, area):
 def logo_header():
     img = ""
     if LOGO_FILE.exists(): img = f'<img src="data:image/jpeg;base64,{base64.b64encode(LOGO_FILE.read_bytes()).decode()}">' 
-    st.markdown(f'<div class="logo-card">{img}<div><div class="logo-title">TIC TAC لصيانة المباني</div><div class="logo-subtitle"> For building Maintenance </div></div></div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="logo-card">{img}<div><div class="logo-title">TIC TAC لصيانة المباني</div><div class="logo-subtitle">For Building Maintenance</div></div></div>', unsafe_allow_html=True)
 
 
 def exports(df, name, title=None):
@@ -224,7 +239,7 @@ with st.sidebar:
     menu = st.radio("القائمة الرئيسية", options or ["لوحة التحكم"])
 
 if menu == "لوحة التحكم":
-    st.title("لوحة التحكم لطلبات الصيانة ")
+    st.title("لوحة التحكم لطلبات الصيانة")
     vals = [
         q("SELECT COUNT(*) n FROM materials").iloc[0,0],
         q("SELECT COUNT(*) n FROM purchases").iloc[0,0],
