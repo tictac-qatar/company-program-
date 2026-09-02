@@ -3,8 +3,9 @@ import sqlite3
 from datetime import datetime, timedelta
 import pandas as pd
 
-# إعداد الصفحة وتنسيق الألوان المستوحى من هوية Tic Tac (كحلي وبرونزي)
-st.set_page_title("Tic Tac for Building Maintenance")
+# التصحيح هنا: استخدام st.set_page_config بدلاً من st.set_page_title
+st.set_page_config(page_title="Tic Tac for Building Maintenance", layout="wide")
+
 st.markdown("""
     <style>
     .main-header {
@@ -82,7 +83,6 @@ if st.sidebar.button("حفظ المعاملة"):
 # واجهة التقارير والعرض الرئيسي
 st.subheader("لوحة التحكم والتقارير المالية")
 
-# أزرار اختيار التقارير
 report_type = st.radio("اختر نطاق التقرير:", ["عرض كافة المعاملات", "التقرير اليومي", "التقرير الأسبوعي", "التقرير الشهري", "التقرير السنوي"], horizontal=True)
 
 today = datetime.now().date()
@@ -108,12 +108,10 @@ else:
 cursor.execute(query, params)
 rows = cursor.fetchall()
 
-# حساب الإجماليات
 total_rev = sum([r[4] for r in rows if r[1] == 'revenue'])
 total_exp = sum([r[4] for r in rows if r[1] == 'expense'])
 net_profit = total_rev - total_exp
 
-# عرض مؤشرات سريعة (Metrics)
 col1, col2, col3 = st.columns(3)
 col1.metric("إجمالي الإيرادات", f"{total_rev:,.2f}")
 col2.metric("إجمالي المصروفات/المشتريات", f"{total_exp:,.2f}")
@@ -121,7 +119,6 @@ col3.metric("صافي الربح", f"{net_profit:,.2f}")
 
 st.markdown("---")
 
-# عرض جدول البيانات
 if rows:
     df = pd.DataFrame(rows, columns=["م", "النوع", "التصنيف", "الوصف", "المبلغ", "التاريخ"])
     df["النوع"] = df["النوع"].apply(lambda x: "إيراد" if x == 'revenue' else "مصروف/شراء")
