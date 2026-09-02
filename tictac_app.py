@@ -19,7 +19,7 @@ DB_FILE = "tictac_pro.db"
 LOGO_FILE = "IMG_7478.jpeg"
 
 # ------------------------------------------------------------
-# Login - kept in the same simple username/password style
+# Login
 # ------------------------------------------------------------
 USERS = {
     "Tictac.qatar": "Azoz@123"
@@ -140,17 +140,17 @@ UNITS = [
 ]
 
 # ------------------------------------------------------------
-# CSS - colors inspired by the uploaded TIC TAC logo
+# CSS - Bright, Clear & Professional Theme (No Dark Backgrounds)
 # ------------------------------------------------------------
 st.markdown("""
 <style>
 .stApp {
-    background: #f7f4ed !important;
-    color: #0b132b !important;
+    background: #ffffff !important;
+    color: #111827 !important;
     font-family: Tahoma, Arial, sans-serif !important;
 }
-h1,h2,h3,h4,h5,h6,label,p,span,div {
-    color: #0b132b;
+h1, h2, h3, h4, h5, h6, label, p, span, div {
+    color: #111827 !important;
 }
 input, textarea, select,
 div[data-baseweb="input"] input,
@@ -159,9 +159,11 @@ div[data-baseweb="base-input"] input,
 .stPasswordInput input,
 div[data-baseweb="input"],
 div[data-baseweb="select"] > div {
-    background: #ffffff !important;
-    color: #0b132b !important;
-    -webkit-text-fill-color: #0b132b !important;
+    background: #f9fafb !important;
+    color: #111827 !important;
+    -webkit-text-fill-color: #111827 !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 6px !important;
 }
 div[data-baseweb="popover"],
 div[data-baseweb="menu"],
@@ -170,32 +172,36 @@ div[role="listbox"],
 div[role="option"],
 li[role="option"] {
     background: #ffffff !important;
-    color: #0b132b !important;
+    color: #111827 !important;
 }
 div.stButton > button {
-    background: #14213d !important;
+    background: #1f2937 !important;
     color: #ffffff !important;
-    border: 0 !important;
+    border: 1px solid #111827 !important;
     border-radius: 8px !important;
     font-weight: bold !important;
 }
 div.stButton > button:hover {
-    background: #c59b27 !important;
-    color: #0b132b !important;
+    background: #d97706 !important;
+    color: #ffffff !important;
+    border-color: #d97706 !important;
 }
 section[data-testid="stSidebar"] {
-    background: #f0ece1 !important;
-    border-right: 1px solid #dcd6c9;
+    background: #f3f4f6 !important;
+    border-right: 1px solid #e5e7eb;
+}
+section[data-testid="stSidebar"] * {
+    color: #1f2937 !important;
 }
 .main-header {
-    background: #ffffff;
+    background: #f9fafb;
     padding: 18px 24px;
     border-radius: 14px;
-    border: 1px solid #dcd6c9;
-    border-top: 6px solid #c59b27;
+    border: 1px solid #e5e7eb;
+    border-top: 6px solid #d97706;
     text-align: center;
     margin-bottom: 22px;
-    box-shadow: 0 3px 10px rgba(0,0,0,.06);
+    box-shadow: 0 2px 6px rgba(0,0,0,.04);
 }
 .main-header img {
     max-height: 135px;
@@ -203,22 +209,15 @@ section[data-testid="stSidebar"] {
     margin-bottom: 8px;
 }
 .card {
-    background: #ffffff;
+    background: #f9fafb;
     padding: 20px;
     border-radius: 12px;
-    border: 1px solid #dcd6c9;
-    box-shadow: 0 3px 8px rgba(0,0,0,.05);
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 2px 6px rgba(0,0,0,.04);
     margin-bottom: 18px;
 }
-.kpi {
-    background: #ffffff;
-    border: 1px solid #dcd6c9;
-    border-top: 4px solid #c59b27;
-    padding: 15px;
-    border-radius: 10px;
-}
 .small-note {
-    color: #586174 !important;
+    color: #4b5563 !important;
     font-size: 13px;
 }
 </style>
@@ -372,12 +371,6 @@ def init_db():
     )
     """)
 
-    # --------------------------------------------------------
-    # Safe schema migration for databases created by older
-    # versions of the TIC TAC app.
-    # CREATE TABLE IF NOT EXISTS does NOT add new columns to
-    # an existing SQLite table, so we add missing columns here.
-    # --------------------------------------------------------
     migrations = {
         "tasks": {
             "client": "TEXT",
@@ -421,7 +414,6 @@ def init_db():
                     f"ALTER TABLE {table} ADD COLUMN {column} {definition}"
                 )
 
-    # Make old employee records usable by the new dashboard.
     if "status" in {
         row[1] for row in cur.execute("PRAGMA table_info(employees)").fetchall()
     }:
@@ -874,9 +866,9 @@ elif menu == "🏢 المباني والعملاء والعقود":
                  contract_start,contract_end,contract_value,notes)
                 VALUES (?,?,?,?,?,?,?,?,?,?)
                 """, (
-                    bname,bclient,address,contact_person,contact_phone,contract_no,
-                    contract_start.isoformat(),contract_end.isoformat(),
-                    contract_value,bnotes
+                    bname, bclient, address, contact_person, contact_phone, contract_no,
+                    contract_start.isoformat(), contract_end.isoformat(),
+                    contract_value, bnotes
                 ))
                 st.success("تم حفظ بيانات المبنى.")
 
@@ -912,7 +904,7 @@ elif menu == "🏢 المباني والعملاء والعقود":
             INSERT INTO contracts
             (building,client,contract_no,contract_type,start_date,end_date,value,status,notes)
             VALUES (?,?,?,?,?,?,?,?,?)
-            """, (cb,cc,cno,ctype,cs.isoformat(),ce.isoformat(),cv,cstatus,cn))
+            """, (cb, cc, cno, ctype, cs.isoformat(), ce.isoformat(), cv, cstatus, cn))
             st.success("تم حفظ العقد.")
 
         contracts = query_df("""
@@ -973,7 +965,7 @@ elif menu == "💰 الحسابات والمالية":
         "SELECT COALESCE(SUM(amount),0) FROM finance WHERE type='expense'"
     ).fetchone()[0]
 
-    a,b,c = st.columns(3)
+    a, b, c = st.columns(3)
     a.metric("إجمالي الإيرادات", f"{rev:,.2f} ر.ق")
     b.metric("إجمالي المصروفات", f"{exp:,.2f} ر.ق")
     c.metric("صافي الربح", f"{rev-exp:,.2f} ر.ق")
@@ -1145,7 +1137,7 @@ elif menu == "📊 التقارير":
         df = query_df("SELECT * FROM finance ORDER BY date DESC,id DESC")
         rev = df.loc[df["type"] == "revenue", "amount"].sum() if not df.empty else 0
         exp = df.loc[df["type"] == "expense", "amount"].sum() if not df.empty else 0
-        x,y,z = st.columns(3)
+        x, y, z = st.columns(3)
         x.metric("الإيرادات", f"{rev:,.2f} ر.ق")
         y.metric("المصروفات", f"{exp:,.2f} ر.ق")
         z.metric("الصافي", f"{rev-exp:,.2f} ر.ق")
