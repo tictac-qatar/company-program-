@@ -7,7 +7,7 @@ st.set_page_config(page_title="Tic Tac for Building Maintenance", layout="wide")
 
 # بيانات الدخول الجديدة الخاصة بك
 USERS = {
-    "tictac.qatar": "Azoz@123"
+    "Tictac.qatar": "Azoz@123"
 }
 
 # دالة التحقق من تسجيل الدخول
