@@ -58,6 +58,16 @@ section[data-testid="stSidebar"] {{ background:linear-gradient(180deg, {NAVY_DAR
 section[data-testid="stSidebar"] * {{ color:#fff !important; }}
 [data-testid="stHeader"] {{ background:transparent; }}
 
+/* إخفاء زر إظهار كلمة المرور الخاص بالمتصفح لتجنب تداخل النصوص مثل sibility */
+input[type="password"]::-webkit-password-toggle-button,
+input[type="password"]::-webkit-credentials-auto-fill-button,
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {{
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}}
+
 /* تدرج هرمي متناسق لأحجام الخطوط والعناوين */
 h1 {{ font-size: 1.85rem !important; font-weight: 800 !important; color: {NAVY} !important; margin-bottom: 1rem !important; }}
 h2 {{ font-size: 1.5rem !important; font-weight: 700 !important; color: {NAVY} !important; margin-top: 1rem !important; }}
@@ -174,7 +184,7 @@ def login():
     with mid:
         st.markdown("### تسجيل الدخول")
         u = st.text_input("اسم المستخدم", key="login_username_field")
-        p = st.text_input("كلمة المرور", type="password", key="login_password_secure_field")
+        p = st.text_input("كلمة المرور", type="password", key="login_password_secure_field", autocomplete="current-password")
         if st.button("دخول", use_container_width=True):
             row = q("SELECT * FROM users WHERE username=? AND password_hash=? AND active=1", (u.strip(), hash_password(p)))
             if not row.empty:
@@ -265,7 +275,7 @@ elif menu == "طلبات الخدمة وأوامر الصيانة":
         with a:
             bname = st.selectbox("موقع العميل والمبنى *", list(bm) or ["لا توجد مواقع عملاء مسجلة"]); location=st.text_input("مكان العطل بالموقع / الطابق"); room=st.text_input("رقم الغرفة / القسم"); system=st.selectbox("تخصص الخدمة المطلوبة", SPECIALTIES); job=st.selectbox("نوع الطلب", ["طلب خدمة طارئة (Call-out)","عقد صيانة وقائية دورية PM","إصلاح تصحيحي CM","فحص واختبار فني","تركيب وتوريد وتركيب"]); priority=st.selectbox("أولوية الاستجابة", ["عادي","متوسط","عالي","طوارئ حرجة SLA"])
         with b:
-            aname=st.selectbox("الأصل أو المعدة التابعة للعميل", ["بدون أصل محدد"]+list(am)); tech=st.selectbox("الفني المسؤول بالمنطقة", ["بدون تعيين"]+list(em)); sup=st.selectbox("مشرف الموقع", ["بدون تعيين"]+list(em)); status=st.selectbox("حالة الطلب", STATUSES); sla=st.number_input("مدة SLA بالاستجابة (ساعات)", 1.0, 720.0, 24.0); safety=st.checkbox("يتطلب تصريح عمل أمان (Permit to Work)")
+            aname=st.selectbox("الأصل أو المعدة التابعة للعميل", ["بدون أصل محدد"]+list(am)); tech=st.selectbox("الفني المسؤول بالمنطقة", ["بدون تعيين"]+list(em)); sup=st.selectbox("مشرف الموقع", ["بدون تعيين"]+list(em)); status=st.selectbox("حالة الطلب", STATUSES); sla=st.number_input("مدة SLA بالاستجابة (ساعات)", min_value=1.0, max_value=720.0, value=24.0, step=1.0); safety=st.checkbox("يتطلب تصريح عمل أمان (Permit to Work)")
         desc=st.text_area("تفاصيل بلاغ أو طلب خدمة العميل *"); root=st.text_area("السبب الجذري للأعطال"); action=st.text_area("الإجراءات الفنية المنفذة"); notes=st.text_area("ملاحظات خاصة بالفاتورة أو العميل")
         if st.form_submit_button("إصدار وتسجيل أمر العمل", use_container_width=True) and bm:
             x("INSERT INTO tasks(ticket_no,building_id,asset_id,location,room,system_type,job_type,priority,description,technician_id,supervisor_id,report_date,assignment_date,sla_hours,status,root_cause,corrective_action,safety_required,notes) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", (ticket,bm[bname],am.get(aname),location,room,system,job,priority,desc,em.get(tech),em.get(sup),date.today().isoformat(),date.today().isoformat(),sla,status,root,action,int(safety),notes)); st.success(f"تم تسجيل طلب الخدمة برقم {ticket}")
@@ -295,8 +305,8 @@ elif menu == "المواد وقطع الغيار":
     if not has_access(user,"inventory"): st.error("لا تملك صلاحية الوصول لهذا القسم."); st.stop()
     with st.form("material"):
         a,b=st.columns(2)
-        with a: code=st.text_input("كود الصنف *"); name=st.text_input("الاسم العربي *"); english=st.text_input("الاسم الإنجليزي"); category=st.selectbox("التصنيف",CATEGORIES); unit=st.selectbox("الوحدة",UNITS); qty=st.number_input("الرصيد الحالي",0.0); minimum=st.number_input("الحد الأدنى للمخزون",0.0)
-        with b: reorder=st.number_input("نقطة إعادة الطلب",0.0); price=st.number_input("سعر التوريد",0.0); cost=st.number_input("متوسط التكلفة",0.0); supplier=st.text_input("المورد المعتمد"); storage=st.text_input("رقم المستودع والرف"); part=st.text_input("رقم القطعة البديلة (Part No)")
+        with a: code=st.text_input("كود الصنف *"); name=st.text_input("الاسم العربي *"); english=st.text_input("الاسم الإنجليزي"); category=st.selectbox("التصنيف",CATEGORIES); unit=st.selectbox("الوحدة",UNITS); qty=st.number_input("الرصيد الحالي", min_value=0.0, value=0.0, step=1.0); minimum=st.number_input("الحد الأدنى للمخزون", min_value=0.0, value=0.0, step=1.0)
+        with b: reorder=st.number_input("نقطة إعادة الطلب", min_value=0.0, value=0.0, step=1.0); price=st.number_input("سعر التوريد", min_value=0.0, value=0.0, step=1.0); cost=st.number_input("متوسط التكلفة", min_value=0.0, value=0.0, step=1.0); supplier=st.text_input("المورد المعتمد"); storage=st.text_input("رقم المستودع والرف"); part=st.text_input("رقم القطعة البديلة (Part No)")
         notes=st.text_area("ملاحظات فنية"); submit=st.form_submit_button("حفظ الصنف بالمستودع",use_container_width=True)
         if submit and code.strip() and name.strip():
             try: x("INSERT INTO materials(item_code,arabic_name,english_name,category,unit,quantity,min_quantity,reorder_point,purchase_price,avg_cost,supplier,storage_location,part_no,notes) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",(code,name,english,category,unit,qty,minimum,reorder,price,cost,supplier,storage,part,notes)); st.success("تم حفظ الصنف")
@@ -308,7 +318,7 @@ elif menu == "حركة المخزون":
     if not has_access(user,"inventory"): st.error("لا تملك صلاحية الوصول لهذا القسم."); st.stop()
     mats=q("SELECT id,item_code,arabic_name,quantity FROM materials"); mm={f"{r['item_code']} - {r['arabic_name']} (الرصيد {r['quantity']})":r['id'] for _,r in mats.iterrows()}
     with st.form("transaction"):
-        selected=st.selectbox("الصنف أو قطعة الغيار",list(mm) or ["لا توجد مواد"]); typ=st.selectbox("نوع الحركة",["إضافة مشريات للمستودع","صرف قطع غيار لموقع عميل","مرتجع من موقع","تسوية زيادة","تسوية عجز"]); qty=st.number_input("الكمية",0.01); cost=st.number_input("سعر الوحدة",0.0); ref=st.text_input("مرجع أمر الصيانة أو رقم الإذن"); notes=st.text_area("ملاحظات الحركة")
+        selected=st.selectbox("الصنف أو قطعة الغيار",list(mm) or ["لا توجد مواد"]); typ=st.selectbox("نوع الحركة",["إضافة مشريات للمستودع","صرف قطع غيار لموقع عميل","مرتجع من موقع","تسوية زيادة","تسوية عجز"]); qty=st.number_input("الكمية", min_value=1.0, value=1.0, step=1.0); cost=st.number_input("سعر الوحدة", min_value=0.0, value=0.0, step=1.0); ref=st.text_input("مرجع أمر الصيانة أو رقم الإذن"); notes=st.text_area("ملاحظات الحركة")
         if st.form_submit_button("تنفيذ حركة المخزون",use_container_width=True) and mm:
             mid=mm[selected]; old=float(q("SELECT quantity FROM materials WHERE id=?",(mid,)).iloc[0,0]); new=old+qty if typ in ["إضافة مشريات للمستودع","مرتجع من موقع","تسوية زيادة"] else old-qty
             if new<0: st.error("الرصيد في المستودع غير كافٍ لعملية الصرف")
@@ -320,8 +330,8 @@ elif menu == "المشتريات":
     if not has_access(user,"purchases"): st.error("لا تملك صلاحية الوصول لهذا القسم."); st.stop()
     with st.form("purchase"):
         a,b=st.columns(2)
-        with a: item=st.text_input("الصنف أو الخدمة المشتراة *"); category=st.selectbox("التصنيف",CATEGORIES); qty=st.number_input("الكمية",0.01); unit=st.selectbox("الوحدة",UNITS); price=st.number_input("سعر الوحدة",0.0)
-        with b: tax=st.number_input("قيمة الضريبة",0.0); supplier=st.text_input("المورد الخارجي *"); invoice=st.text_input("رقم فاتورة المورد"); status=st.selectbox("حالة أمر الشراء",["مسودة","بانتظار الاعتماد المالي","قيد التوريد","مكتمل ومستلم","ملغي"])
+        with a: item=st.text_input("الصنف أو الخدمة المشتراة *"); category=st.selectbox("التصنيف",CATEGORIES); qty=st.number_input("الكمية", min_value=1.0, value=1.0, step=1.0); unit=st.selectbox("الوحدة",UNITS); price=st.number_input("سعر الوحدة", min_value=0.0, value=0.0, step=1.0)
+        with b: tax=st.number_input("قيمة الضريبة", min_value=0.0, value=0.0, step=1.0); supplier=st.text_input("المورد الخارجي *"); invoice=st.text_input("رقم فاتورة المورد"); status=st.selectbox("حالة أمر الشراء",["مسودة","بانتظار الاعتماد المالي","قيد التوريد","مكتمل ومستلم","ملغي"])
         notes=st.text_area("ملاحظات الشراء"); submit=st.form_submit_button("حفظ أمر الشراء الخارجي",use_container_width=True)
         if submit and item.strip() and supplier.strip():
             po=f"PO-{datetime.now().strftime('%Y%m%d%H%M%S')}-{secrets.token_hex(2).upper()}"; total=qty*price+tax; x("INSERT INTO purchases(po_no,item_name,category,quantity,unit,price,tax,total_amount,supplier,invoice_no,date,status,notes) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",(po,item,category,qty,unit,price,tax,total,supplier,invoice,date.today().isoformat(),status,notes));
@@ -334,7 +344,7 @@ elif menu == "مواقع العملاء":
     with st.form("building"):
         a,b=st.columns(2)
         with a: name=st.text_input("اسم الموقع / المبنى التابع للعميل *"); client=st.text_input("اسم العميل / الشركة المالكة *"); address=st.text_input("عنوان الموقع بالتفصيل"); contact=st.text_input("اسم مسؤول الاتصال لدى العميل")
-        with b: phone=st.text_input("هاتف مسؤول العميل"); floors=st.number_input("عدد الطوابق أو الوحدات بالموقع",1); systems=st.text_area("الأنظمة الكهروميكانيكية المتعاقد عليها بالموقع")
+        with b: phone=st.text_input("هاتف مسؤول العميل"); floors=st.number_input("عدد الطوابق أو الوحدات بالموقع", min_value=1, value=1, step=1); systems=st.text_area("الأنظمة الكهروميكانيكية المتعاقد عليها بالموقع")
         notes=st.text_area("ملاحظات تعاقدية خاصة بالعميل والموقع"); submit=st.form_submit_button("حفظ بيانات موقع العميل",use_container_width=True)
         if submit and name.strip() and client.strip(): x("INSERT INTO buildings(name,client,address,contact_person,contact_phone,floors_count,systems_installed,notes) VALUES(?,?,?,?,?,?,?,?)",(name,client,address,contact,phone,floors,systems,notes)); st.success("تم حفظ موقع العميل بنجاح")
     report_page("قائمة مواقع وعملاء الصيانة","SELECT name AS 'الموقع',client AS 'العميل',address AS 'العنوان',contact_person AS 'المسؤول',contact_phone AS 'الهاتف',floors_count AS 'الطوابق' FROM buildings ORDER BY id DESC","clients_buildings")
@@ -345,7 +355,7 @@ elif menu == "عقود الصيانة للعملاء":
     buildings=q("SELECT id,name,client FROM buildings"); bm={f"{r['name']} (العميل: {r['client']})":r['id'] for _,r in buildings.iterrows()}
     with st.form("contract"):
         a,b=st.columns(2)
-        with a: no=st.text_input("رقم العقد مع العميل *"); bn=st.selectbox("موقع العميل المرتبط بالعقد",list(bm) or ["بدون"]); typ=st.selectbox("نوع عقد الصيانة",["صيانة شاملة قطع غيار وخدمة","صيانة وقائية دورية فقط","إدارة مرافق متكاملة FM","حسب الطلب Call-out"]); value=st.number_input("قيمة العقد السنوية / الإجمالية",0.0)
+        with a: no=st.text_input("رقم العقد مع العميل *"); bn=st.selectbox("موقع العميل المرتبط بالعقد",list(bm) or ["بدون"]); typ=st.selectbox("نوع عقد الصيانة",["صيانة شاملة قطع غيار وخدمة","صيانة وقائية دورية فقط","إدارة مرافق متكاملة FM","حسب الطلب Call-out"]); value=st.number_input("قيمة العقد السنوية / الإجمالية", min_value=0.0, value=0.0, step=100.0)
         with b: start=st.date_input("تاريخ بداية العقد",date.today()); end=st.date_input("تاريخ نهاية العقد",date.today()+timedelta(days=365)); status=st.selectbox("الحالة العقد",["ساري","منتهي","قيد التجديد","مفسوخ / ملغي"])
         services=st.text_area("نطاق الأعمال والخدمات المشمولة بالعقد"); notes=st.text_area("شروط الدفع والملاحظات المالية"); submit=st.form_submit_button("حفظ وإصدار العقد",use_container_width=True)
         if submit and no.strip():
@@ -359,7 +369,7 @@ elif menu == "الموظفون":
     with st.form("employee"):
         a,b=st.columns(2)
         with a: name=st.text_input("اسم الموظف *"); nid=st.text_input("الرقم المدني / الإقامات"); phone=st.text_input("رقم الجوال"); role=st.selectbox("المسمى الوظيفي",ROLES); dept=st.selectbox("القسم الإداري",DEPARTMENTS)
-        with b: hire=st.date_input("تاريخ التعيين",date.today()); salary=st.number_input("الراتب الشهري",0.0); status=st.selectbox("الحالة",["على رأس العمل","إجازة سنوية","موقوف","منتهي الخدمة"]); skills=st.text_input("المهارات التخصصية أو شهادات الاعتماد")
+        with b: hire=st.date_input("تاريخ التعيين",date.today()); salary=st.number_input("الراتب الشهري", min_value=0.0, value=0.0, step=100.0); status=st.selectbox("الحالة",["على رأس العمل","إجازة سنوية","موقوف","منتهي الخدمة"]); skills=st.text_input("المهارات التخصصية أو شهادات الاعتماد")
         notes=st.text_area("ملاحظات"); submit=st.form_submit_button("حفظ بيانات الموظف",use_container_width=True)
         if submit and name.strip(): x("INSERT INTO employees(name,national_id,phone,role,department,hire_date,salary,status,skills,notes) VALUES(?,?,?,?,?,?,?,?,?,?)",(name,nid,phone,role,dept,hire.isoformat(),salary,status,skills,notes)); st.success("تم حفظ بيانات الموظف")
     report_page("قائمة الموظفين","SELECT name AS 'الموظف',role AS 'الوظيفة',department AS 'القسم',phone AS 'الهاتف',salary AS 'الراتب',status AS 'الحالة' FROM employees ORDER BY id DESC","employees_report")
@@ -369,7 +379,7 @@ elif menu == "الحضور والدوام":
     if not has_access(user,"hr"): st.error("لا تملك الصلاحية."); st.stop()
     emps=q("SELECT id,name,role FROM employees WHERE status='على رأس العمل'"); em={f"{r['name']} ({r['role']})":r['id'] for _,r in emps.iterrows()}
     with st.form("attendance"):
-        en=st.selectbox("الموظف",list(em) or ["لا يوجد موظفون"]); status=st.selectbox("حالة الدوام",["حاضر بموقع الشركة أو المشروع","غائب","إجازة","مرضي","مهمة صيانة خارجية","تأخير عن الموعد"]); d=st.date_input("تاريخ اليوم",date.today()); hours=st.number_input("ساعات العمل الفعلية",0.0,24.0,8.0); notes=st.text_input("ملاحظات الحضور")
+        en=st.selectbox("الموظف",list(em) or ["لا يوجد موظفون"]); status=st.selectbox("حالة الدوام",["حاضر بموقع الشركة أو المشروع","غائب","إجازة","مرضي","مهمة صيانة خارجية","تأخير عن الموعد"]); d=st.date_input("تاريخ اليوم",date.today()); hours=st.number_input("ساعات العمل الفعلية", min_value=0.0, max_value=24.0, value=8.0, step=1.0); notes=st.text_input("ملاحظات الحضور")
         if st.form_submit_button("تسجيل الحضور",use_container_width=True) and em:
             try: x("INSERT INTO attendance(emp_id,status,date,work_hours,notes) VALUES(?,?,?,?,?)",(em[en],status,d.isoformat(),hours,notes)); st.success("تم تسجيل الحضور بنجاح")
             except sqlite3.IntegrityError: st.error("تم تسجيل الحضور مسبقاً لهذا الموظف في هذا التاريخ")
@@ -381,7 +391,7 @@ elif menu == "الحسابات والفواتير":
     with st.form("finance"):
         a,b=st.columns(2)
         with a: typ=st.selectbox("نوع المعاملة المالية",["إيراد","مصروف"]); cat=st.selectbox("التصنيف المالي",["عقود صيانة عملاء","فواتير طلبات خدمة خارجية","رواتب وأجور الفنيين","شراء مواد وقطع غيار مشاريع","مصاريف تشغيلية ونقليات","إصلاحات ومقاولين باطن","أخرى"]); desc=st.text_input("بيان المعاملة المالية *")
-        with b: amount=st.number_input("المبلغ (ر.ق / ر.س)",0.0); d=st.date_input("تاريخ المعاملة",date.today()); ref=st.text_input("رقم الفاتورة أو المرجع المرتبط")
+        with b: amount=st.number_input("المبلغ (ر.ق / ر.س)", min_value=0.0, value=0.0, step=1.0); d=st.date_input("تاريخ المعاملة",date.today()); ref=st.text_input("رقم الفاتورة أو المرجع المرتبط")
         if st.form_submit_button("تسجيل المعاملة بالحسابات",use_container_width=True) and desc.strip() and amount>0: x("INSERT INTO finance(type,category,description,amount,date,reference) VALUES(?,?,?,?,?,?)",(typ,cat,desc,amount,d.isoformat(),ref)); st.success("تم حفظ المعاملة بنجاح")
     rev=float(q("SELECT COALESCE(SUM(amount),0) n FROM finance WHERE type='إيراد'").iloc[0,0]); exp=float(q("SELECT COALESCE(SUM(amount),0) n FROM finance WHERE type='مصروف'").iloc[0,0]); c1,c2,c3=st.columns(3); c1.markdown(metric("إجمالي إيرادات العقود والخدمات",f"{rev:,.2f} ر.ق"),unsafe_allow_html=True); c2.markdown(metric("إجمالي المصروفات التشغيلية",f"{exp:,.2f} ر.ق"),unsafe_allow_html=True); c3.markdown(metric("صافي أرباح الشركة",f"{rev-exp:,.2f} ر.ق"),unsafe_allow_html=True)
     report_page("السجل المالي الشامل","SELECT type AS 'النوع',category AS 'التصنيف',description AS 'البيان',amount AS 'المبلغ',date AS 'التاريخ',reference AS 'المرجع' FROM finance ORDER BY date DESC","finance_report")
@@ -427,7 +437,7 @@ elif menu == "إدارة المستخدمين":
     header_cols[0].markdown("**اسم المستخدم**")
     header_cols[1].markdown("**الاسم الظاهر**")
     header_cols[2].markdown("**نوع الحساب**")
-    header_cols[3].markdown("**الحالة**")
+    header_cols[3].markdown("__الحالة__")
     header_cols[4].markdown("**إزالة نهائية**")
     header_cols[5].markdown("**تعطيل / تفعيل**")
     st.markdown("---")
