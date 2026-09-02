@@ -3,9 +3,10 @@ import sqlite3
 from datetime import datetime, date, timedelta
 import pandas as pd
 from pathlib import Path
+import base64
 
 # ============================================================
-# TIC TAC - Building Maintenance Management System (PRO)
+# TIC TAC - Building Maintenance Management System (PRO V3)
 # ============================================================
 
 st.set_page_config(
@@ -15,7 +16,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-DB_FILE = "tictac_pro_v2.db"
+DB_FILE = "tictac_pro_v3.db"
 LOGO_FILE = "IMG_7478.jpeg"
 
 # ------------------------------------------------------------
@@ -29,32 +30,13 @@ USERS = {
 # Constants & Master Lists
 # ------------------------------------------------------------
 MAINTENANCE_SPECIALTIES = [
-    "الكهرباء",
-    "HVAC (التكييف والتبريد)",
-    "السباكة",
-    "الصرف الصحي",
-    "مضخات المياه",
-    "Fire Fighting (مكافحة الحريق)",
-    "Fire Alarm (إنذار الحريق)",
-    "المولدات",
-    "UPS",
-    "المصاعد",
-    "BMS (التحكم الآلي)",
-    "CCTV (كاميرات المراقبة)",
-    "Access Control (أنظمة الدخول)",
-    "الشبكات والاتصالات",
-    "أبواب وأقفال",
-    "نجارة",
-    "ألومنيوم وزجاج",
-    "دهانات",
-    "جبس وأسقف",
-    "عزل",
-    "أعمال مدنية",
-    "حدادة ولحام",
-    "معدات مطابخ",
-    "نظافة",
-    "HSE (السلامة والصحة المهنية)",
-    "أخرى"
+    "الكهرباء", "HVAC (التكييف والتبريد)", "السباكة", "الصرف الصحي",
+    "مضخات المياه", "Fire Fighting (مكافحة الحريق)", "Fire Alarm (إنذار الحريق)",
+    "المولدات", "UPS", "المصاعد", "BMS (التحكم الآلي)", "CCTV (كاميرات المراقبة)",
+    "Access Control (أنظمة الدخول)", "الشبكات والاتصالات", "أبواب وأقفال",
+    "نجارة", "ألومنيوم وزجاج", "دهانات", "جبس وأسقف", "عزل",
+    "أعمال مدنية", "حدادة ولحام", "معدات مطابخ", "نظافة",
+    "HSE (السلامة والصحة المهنية)", "أخرى"
 ]
 
 JOB_ROLES = [
@@ -83,109 +65,37 @@ UNITS = [
 # ------------------------------------------------------------
 st.markdown("""
 <style>
-/* Global App Background & Text Color Fixes */
-.stApp, 
-[data-testid="stAppViewContainer"], 
-[data-testid="stHeader"], 
-[data-testid="stToolbar"], 
-div.block-container, 
-div[data-testid="stVerticalBlock"], 
-section[data-testid="stSidebar"] {
+.stApp, [data-testid="stAppViewContainer"], [data-testid="stHeader"], [data-testid="stToolbar"], div.block-container, section[data-testid="stSidebar"] {
     background-color: #ffffff !important;
-    background: #ffffff !important;
     color: #111827 !important;
     direction: rtl !important;
     text-align: right !important;
 }
-
 section[data-testid="stSidebar"] {
     border-left: 1px solid #e5e7eb !important;
-    border-right: none !important;
 }
-
-/* Force readable dark text everywhere */
-h1, h2, h3, h4, h5, h6, label, p, span, div, .stMarkdown, .stText, .streamlit-expanderHeader {
+h1, h2, h3, h4, h5, h6, label, p, span, div, .stMarkdown, .stText {
     color: #111827 !important;
-    -webkit-text-fill-color: #111827 !important;
     direction: rtl !important;
     text-align: right !important;
 }
-
-/* Form Inputs, Selectboxes, Textareas styling */
-input, textarea, select,
-[data-baseweb="input"] input,
-[data-baseweb="base-input"] input,
-.stTextInput input,
-.stPasswordInput input,
-.stTextArea textarea,
-div[data-baseweb="input"],
-div[data-baseweb="base-input"],
-div[data-baseweb="textarea"],
-div[data-baseweb="select"] > div {
+input, textarea, select, div[data-baseweb="input"] input, div[data-baseweb="select"] > div {
     background-color: #ffffff !important;
-    background: #ffffff !important;
     color: #111827 !important;
-    -webkit-text-fill-color: #111827 !important;
     border-color: #cbd5e1 !important;
     border-radius: 6px !important;
 }
-
-/* Dropdown menus and popovers */
-[data-baseweb="popover"],
-[data-baseweb="menu"],
-[data-baseweb="calendar"],
-[data-baseweb="select-dropdown"],
-[role="listbox"],
-[role="dialog"],
-[role="menu"] {
-    background-color: #ffffff !important;
-    color: #111827 !important;
-}
-
-[data-baseweb="calendar"] *,
-[data-baseweb="popover"] *,
-[data-baseweb="menu"] *,
-[role="listbox"] *,
-[role="option"] * {
-    background-color: #ffffff !important;
-    color: #111827 !important;
-    -webkit-text-fill-color: #111827 !important;
-}
-
-[data-baseweb="calendar"] button[aria-selected="true"] {
-    background-color: #d97706 !important;
-    color: #ffffff !important;
-    -webkit-text-fill-color: #ffffff !important;
-}
-
-/* Buttons styling */
 div.stButton > button {
     background-color: #1f2937 !important;
     color: #ffffff !important;
-    -webkit-text-fill-color: #ffffff !important;
-    border: 1px solid #1f2937 !important;
     border-radius: 8px !important;
     font-weight: bold !important;
+    border: none !important;
 }
 div.stButton > button:hover {
     background-color: #d97706 !important;
     color: #ffffff !important;
-    border-color: #d97706 !important;
 }
-
-/* Sidebar button exceptions */
-section[data-testid="stSidebar"] div.stButton > button {
-    background-color: #ffffff !important;
-    color: #1f2937 !important;
-    -webkit-text-fill-color: #1f2937 !important;
-    border: 1px solid #d1d5db !important;
-}
-section[data-testid="stSidebar"] div.stButton > button:hover {
-    background-color: #f3f4f6 !important;
-    color: #111827 !important;
-}
-
-/* Custom Header Card */
 .main-header {
     background-color: #ffffff !important;
     padding: 20px;
@@ -194,29 +104,24 @@ section[data-testid="stSidebar"] div.stButton > button:hover {
     border-top: 6px solid #d97706;
     text-align: center;
     margin-bottom: 20px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
 }
 .main-header img {
-    max-height: 120px;
-    border-radius: 10px;
+    max-height: 100px;
+    border-radius: 8px;
     margin-bottom: 10px;
 }
-
-/* Cards */
 .card {
     background-color: #ffffff !important;
     padding: 18px;
     border-radius: 10px;
     border: 1px solid #e5e7eb;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.02);
     margin-bottom: 15px;
 }
 </style>
 """, unsafe_allow_html=True)
 
-
 # ------------------------------------------------------------
-# Database Setup & Relational Integrity (SQLite)
+# Database Connection & Initialization
 # ------------------------------------------------------------
 def get_conn():
     conn = sqlite3.connect(DB_FILE, check_same_thread=False)
@@ -227,7 +132,6 @@ def init_db():
     conn = get_conn()
     cur = conn.cursor()
 
-    # 1. Buildings
     cur.execute("""
     CREATE TABLE IF NOT EXISTS buildings (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -239,10 +143,8 @@ def init_db():
         floors_count INTEGER DEFAULT 1,
         systems_installed TEXT,
         notes TEXT
-    )
-    """)
+    )""")
 
-    # 2. Contracts
     cur.execute("""
     CREATE TABLE IF NOT EXISTS contracts (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -256,10 +158,8 @@ def init_db():
         status TEXT DEFAULT 'ساري',
         notes TEXT,
         FOREIGN KEY (building_id) REFERENCES buildings(id) ON DELETE SET NULL
-    )
-    """)
+    )""")
 
-    # 3. Employees
     cur.execute("""
     CREATE TABLE IF NOT EXISTS employees (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -273,10 +173,8 @@ def init_db():
         status TEXT DEFAULT 'على رأس العمل',
         skills TEXT,
         notes TEXT
-    )
-    """)
+    )""")
 
-    # 4. Materials (Inventory master)
     cur.execute("""
     CREATE TABLE IF NOT EXISTS materials (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -300,10 +198,8 @@ def init_db():
         serial_no TEXT,
         warranty_date TEXT,
         notes TEXT
-    )
-    """)
+    )""")
 
-    # 5. Work Orders (Tasks)
     cur.execute("""
     CREATE TABLE IF NOT EXISTS tasks (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -330,10 +226,8 @@ def init_db():
         FOREIGN KEY (building_id) REFERENCES buildings(id) ON DELETE SET NULL,
         FOREIGN KEY (technician_id) REFERENCES employees(id) ON DELETE SET NULL,
         FOREIGN KEY (supervisor_id) REFERENCES employees(id) ON DELETE SET NULL
-    )
-    """)
+    )""")
 
-    # 6. Inventory Transactions
     cur.execute("""
     CREATE TABLE IF NOT EXISTS material_transactions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -349,10 +243,8 @@ def init_db():
         notes TEXT,
         FOREIGN KEY (material_id) REFERENCES materials(id) ON DELETE CASCADE,
         FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE SET NULL
-    )
-    """)
+    )""")
 
-    # 7. Purchases (PR & PO)
     cur.execute("""
     CREATE TABLE IF NOT EXISTS purchases (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -369,10 +261,8 @@ def init_db():
         date TEXT,
         status TEXT DEFAULT 'مكتمل',
         notes TEXT
-    )
-    """)
+    )""")
 
-    # 8. Attendance
     cur.execute("""
     CREATE TABLE IF NOT EXISTS attendance (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -383,10 +273,8 @@ def init_db():
         notes TEXT,
         UNIQUE(emp_id, date),
         FOREIGN KEY (emp_id) REFERENCES employees(id) ON DELETE CASCADE
-    )
-    """)
+    )""")
 
-    # 9. Finance
     cur.execute("""
     CREATE TABLE IF NOT EXISTS finance (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -400,35 +288,33 @@ def init_db():
         contract_id INTEGER,
         FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE SET NULL,
         FOREIGN KEY (contract_id) REFERENCES contracts(id) ON DELETE SET NULL
-    )
-    """)
+    )""")
 
     conn.commit()
     conn.close()
 
 init_db()
-conn = get_conn()
-today = date.today().isoformat()
 
 # ------------------------------------------------------------
 # Helper Functions
 # ------------------------------------------------------------
 def query_df(sql, params=()):
-    return pd.read_sql_query(sql, conn, params=params)
+    with get_conn() as conn:
+        return pd.read_sql_query(sql, conn, params=params)
 
 def execute(sql, params=()):
-    cur = conn.cursor()
-    cur.execute(sql, params)
-    conn.commit()
-    return cur.lastrowid
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute(sql, params)
+        conn.commit()
+        return cur.lastrowid
 
 def csv_download(df, filename):
     return st.download_button(
-        "⬇️ تنزيل البيانات كملف CSV / Excel",
+        "⬇️ تنزيل البيانات كملف CSV",
         data=df.to_csv(index=False).encode("utf-8-sig"),
         file_name=filename,
-        mime="text/csv",
-        use_container_width=False
+        mime="text/csv"
     )
 
 def login_screen():
@@ -446,7 +332,7 @@ def login_screen():
     </div>
     """, unsafe_allow_html=True)
 
-    c1, c2, c3 = st.columns([1, 2, 1])
+    _, c2, _ = st.columns([1, 2, 1])
     with c2:
         st.markdown('<div class="card">', unsafe_allow_html=True)
         username = st.text_input("اسم المستخدم")
@@ -463,13 +349,11 @@ def login_screen():
 if not login_screen():
     st.stop()
 
-
 # ------------------------------------------------------------
 # App Header & Navigation
 # ------------------------------------------------------------
 logo_html = ""
 if Path(LOGO_FILE).exists():
-    import base64
     encoded = base64.b64encode(Path(LOGO_FILE).read_bytes()).decode()
     logo_html = f'<img src="data:image/jpeg;base64,{encoded}" alt="TIC TAC Logo">'
 
@@ -500,14 +384,12 @@ menu = st.sidebar.radio("اختر القسم:", [
     "📊 التقارير الشاملة"
 ])
 
-
 # ============================================================
 # 1. Dashboard (لوحة التحكم الاحترافية)
 # ============================================================
 if menu == "🏠 لوحة التحكم (Dashboard)":
     st.markdown("## 📊 لوحة التحكم الشاملة")
 
-    # Metrics aggregation
     total_tasks = query_df("SELECT COUNT(*) FROM tasks").iloc[0,0]
     open_tasks = query_df("SELECT COUNT(*) FROM tasks WHERE status NOT IN ('مكتمل','ملغي')").iloc[0,0]
     overdue_tasks = query_df("SELECT COUNT(*) FROM tasks WHERE status NOT IN ('مكتمل','ملغي') AND report_date < date('now','-3 days')").iloc[0,0]
@@ -524,7 +406,6 @@ if menu == "🏠 لوحة التحكم (Dashboard)":
     rev = query_df("SELECT COALESCE(SUM(amount),0) FROM finance WHERE type='إيراد'").iloc[0,0]
     exp = query_df("SELECT COALESCE(SUM(amount),0) FROM finance WHERE type='مصروف'").iloc[0,0]
 
-    # Row 1 metrics
     c1, c2, c3, c4, c5 = st.columns(5)
     c1.metric("إجمالي أوامر الصيانة", total_tasks)
     c2.metric("أوامر مفتوحة", open_tasks)
@@ -532,7 +413,6 @@ if menu == "🏠 لوحة التحكم (Dashboard)":
     c4.metric("طوارئ نشطة", emergency_tasks)
     c5.metric("أوامر مكتملة", completed_tasks)
 
-    # Row 2 metrics
     c6, c7, c8, c9, c10 = st.columns(5)
     c6.metric("إجمالي المباني", total_buildings)
     c7.metric("العقود السارية", active_contracts)
@@ -540,7 +420,6 @@ if menu == "🏠 لوحة التحكم (Dashboard)":
     c9.metric("قيمة المخزون (ر.ق)", f"{inv_val:,.2f}")
     c10.metric("أصناف منخفضة", low_stock_count)
 
-    # Row 3 metrics
     c11, c12, c13 = st.columns(3)
     c11.metric("إجمالي الإيرادات", f"{rev:,.2f} ر.ق")
     c12.metric("إجمالي المصروفات", f"{exp:,.2f} ر.ق")
@@ -563,7 +442,6 @@ if menu == "🏠 لوحة التحكم (Dashboard)":
             FROM materials WHERE quantity <= min_quantity ORDER BY quantity ASC
         """)
         st.dataframe(low_df, use_container_width=True)
-
 
 # ============================================================
 # 2. Work Orders (أوامر الصيانة والبلاغات)
@@ -612,7 +490,7 @@ elif menu == "🛠️ أوامر الصيانة والبلاغات":
             actual_cost = st.number_input("التكلفة الفعلية (ر.ق)", min_value=0.0, format="%.2f")
 
         description = st.text_area("وصف عطل الأجهزة / الأعمال المطلوبة *", height=90)
-        materials_used = st.text_area("المواد وقطع الغيار المستخدمة", placeholder="مثال: 2 فلتر هواء، 1 قاطع كهربائي...")
+        materials_used = st.text_area("المواد وقطع الغيار المستخدمة")
         notes = st.text_area("ملاحظات فنية إضافية")
 
         if st.button("💾 حفظ وإصدار أمر الصيانة", use_container_width=True):
@@ -668,7 +546,6 @@ elif menu == "🛠️ أوامر الصيانة والبلاغات":
         st.dataframe(tasks_df, use_container_width=True, height=500)
         if not tasks_df.empty:
             csv_download(tasks_df, "tictac_work_orders.csv")
-
 
 # ============================================================
 # 3. Materials & Spare Parts (قاعدة المواد وقطع الغيار)
@@ -739,8 +616,7 @@ elif menu == "📦 المواد وقطع الغيار":
         materials_df = query_df(sql_m, tuple(params_m))
         st.dataframe(materials_df, use_container_width=True, height=500)
         if not materials_df.empty:
-            csv_download(materials_df, "tictac_materials_database.csv")
-
+            csv_download(materials_df, "tictac_materials.csv")
 
 # ============================================================
 # 4. Inventory Transactions (حركة المخزون)
@@ -824,7 +700,6 @@ elif menu == "🔄 حركة المخزون":
         if not trans_df.empty:
             csv_download(trans_df, "tictac_inventory_transactions.csv")
 
-
 # ============================================================
 # 5. Purchases (المشتريات PR / PO)
 # ============================================================
@@ -866,7 +741,6 @@ elif menu == "🛒 المشتريات":
                     po_no, item_name, category, quantity, unit, price, tax, total_amount,
                     supplier, invoice_no, p_date.isoformat(), status, notes
                 ))
-                # Auto record in finance as expense
                 execute("""
                 INSERT INTO finance (type, category, description, amount, date, reference)
                 VALUES ('مصروف', 'شراء مواد وقطع غيار', ?, ?, ?, ?)
@@ -887,7 +761,6 @@ elif menu == "🛒 المشتريات":
         if not purchases_df.empty:
             csv_download(purchases_df, "tictac_purchases.csv")
 
-
 # ============================================================
 # 6. Buildings & Clients (المباني والعملاء)
 # ============================================================
@@ -906,7 +779,7 @@ elif menu == "🏢 المباني والعملاء":
         with c2:
             contact_phone = st.text_input("هاتف المسؤول")
             floors_count = st.number_input("عدد الطوابق", min_value=1, value=1)
-            systems_installed = st.text_area("الأنظمة الموجودة بالمبنى", placeholder="تكييف مركزى، إنذار حريق، مصاعد، BMS...")
+            systems_installed = st.text_area("الأنظمة الموجودة بالمبنى")
 
         notes = st.text_area("ملاحظات المبنى")
 
@@ -931,7 +804,6 @@ elif menu == "🏢 المباني والعملاء":
         st.dataframe(b_df, use_container_width=True, height=500)
         if not b_df.empty:
             csv_download(b_df, "tictac_buildings.csv")
-
 
 # ============================================================
 # 7. Contracts (العقود)
@@ -971,7 +843,6 @@ elif menu == "📄 العقود":
                     VALUES (?,?,?,?,?,?,?,?,?)
                     """, (building_id, contract_no, contract_type, value, services_included, start_date.isoformat(), end_date.isoformat(), status, notes))
 
-                    # Auto record revenue
                     execute("""
                     INSERT INTO finance (type, category, description, amount, date, reference, contract_id)
                     VALUES ('إيراد', 'عقود صيانة', ?, ?, ?, ?, ?)
@@ -1004,7 +875,6 @@ elif menu == "📄 العقود":
         if not contracts_df.empty:
             csv_download(contracts_df, "tictac_contracts.csv")
 
-
 # ============================================================
 # 8. Employees (الموظفون)
 # ============================================================
@@ -1025,7 +895,7 @@ elif menu == "👥 الموظفون":
             hire_date = st.date_input("تاريخ التعيين", value=date.today())
             salary = st.number_input("الراتب الأساسي (ر.ق)", min_value=0.0, format="%.2f")
             status = st.selectbox("حالة الموظف", ["على رأس العمل", "إجازة", "موقوف", "منتهي الخدمة"])
-            skills = st.text_input("المهارات والتخصصات الدقيقة", placeholder="فني تكييف مركزى، كهرباء ضغط عالي...")
+            skills = st.text_input("المهارات والتخصصات الدقيقة")
 
         notes = st.text_area("ملاحظات الموظف")
 
@@ -1049,7 +919,6 @@ elif menu == "👥 الموظفون":
         st.dataframe(emp_df, use_container_width=True, height=500)
         if not emp_df.empty:
             csv_download(emp_df, "tictac_employees.csv")
-
 
 # ============================================================
 # 9. Attendance (الحضور والدوام)
@@ -1083,7 +952,7 @@ elif menu == "🕘 الحضور والدوام":
                     """, (emp_id, att_status, att_date.isoformat(), work_hours, att_notes))
                     st.success("تم تسجيل الحضور بنجاح.")
                 except sqlite3.IntegrityError:
-                    st.error("تم تسجيل حضور هذا الموظف مسبقاً لهذا اليوم. يمكنك التعديل عند الحاجة.")
+                    st.error("تم تسجيل حضور هذا الموظف مسبقاً لهذا اليوم.")
             else:
                 st.error("يرجى اختيار موظف صحيح.")
 
@@ -1098,7 +967,6 @@ elif menu == "🕘 الحضور والدوام":
         st.dataframe(att_df, use_container_width=True, height=500)
         if not att_df.empty:
             csv_download(att_df, "tictac_attendance.csv")
-
 
 # ============================================================
 # 10. Finance (الحسابات والمالية)
@@ -1151,7 +1019,6 @@ elif menu == "💰 الحسابات والمالية":
         if not fin_df.empty:
             csv_download(fin_df, "tictac_finance.csv")
 
-
 # ============================================================
 # 11. Reports (التقارير الشاملة)
 # ============================================================
@@ -1173,42 +1040,35 @@ elif menu == "📊 التقارير الشاملة":
         df = query_df("SELECT * FROM tasks ORDER BY id DESC")
         st.dataframe(df, use_container_width=True)
         if not df.empty: csv_download(df, "tictac_report_tasks.csv")
-
     elif report_type == "تقرير المواد والمخزون":
         df = query_df("SELECT * FROM materials ORDER BY id DESC")
         st.dataframe(df, use_container_width=True)
         if not df.empty: csv_download(df, "tictac_report_materials.csv")
-
     elif report_type == "تقرير حركات المخزون":
         df = query_df("SELECT * FROM material_transactions ORDER BY id DESC")
         st.dataframe(df, use_container_width=True)
         if not df.empty: csv_download(df, "tictac_report_inventory_trans.csv")
-
     elif report_type == "تقرير المشتريات":
         df = query_df("SELECT * FROM purchases ORDER BY id DESC")
         st.dataframe(df, use_container_width=True)
         if not df.empty: csv_download(df, "tictac_report_purchases.csv")
-
     elif report_type == "تقرير العقود":
         df = query_df("SELECT * FROM contracts ORDER BY id DESC")
         st.dataframe(df, use_container_width=True)
         if not df.empty: csv_download(df, "tictac_report_contracts.csv")
-
     elif report_type == "تقرير الموظفين":
         df = query_df("SELECT * FROM employees ORDER BY id DESC")
         st.dataframe(df, use_container_width=True)
         if not df.empty: csv_download(df, "tictac_report_employees.csv")
-
     elif report_type == "تقرير الحضور والغياب":
         df = query_df("SELECT * FROM attendance ORDER BY id DESC")
         st.dataframe(df, use_container_width=True)
         if not df.empty: csv_download(df, "tictac_report_attendance.csv")
-
     elif report_type == "تقرير الإيرادات والمصروفات والربحية":
         df = query_df("SELECT * FROM finance ORDER BY id DESC")
-        st.dataframe(df, use_container_width=True)
+        st.dataframe(df, use_container_width=Thread if 'Thread' in globals() else True)
         if not df.empty: csv_download(df, "tictac_report_finance.csv")
 
 st.sidebar.markdown("---")
 st.sidebar.caption("TIC TAC Building Maintenance Platform")
-st.sidebar.caption("Qatar • Professional Edition v2.0")
+st.sidebar.caption("Qatar • Professional Edition v3.0")
