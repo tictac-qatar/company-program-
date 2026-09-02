@@ -5,7 +5,7 @@ import pandas as pd
 
 st.set_page_config(page_title="Tic Tac for Building Maintenance", layout="wide")
 
-# تعديل شامل وقوي لفرض الألوان الفاتحة والكحلي الداكن على جميع عناصر Streamlit و BaseWeb الداخلية
+# تعديل شامل ونهائي لقوائم الاختيار المنبثقة، حقول التاريخ، والأزرار
 st.markdown("""
     <style>
     /* فرض خلفية فاتحة ونصوص كحلي داكن على التطبيق بأكمله */
@@ -23,25 +23,57 @@ st.markdown("""
         font-weight: bold !important;
     }
     
-    /* حقول الإدخال */
+    /* حقول الإدخال النصية */
     input, textarea {
         background-color: #ffffff !important;
         color: #0b132b !important;
     }
     
-    /* إصلاح جذري للقوائم المنسدلة وحاويات BaseWeb لمنع الشاشة السوداء */
+    /* إصلاح شامل للقوائم المنسدلة وعناصر الاختيار المنبثقة (BaseWeb Popover & Menu & Listbox) */
     div[data-baseweb="select"] > div, div[data-baseweb="select"] {
         background-color: #ffffff !important;
         color: #0b132b !important;
     }
     
-    div[data-baseweb="menu"], div[data-baseweb="popover"], ul[data-baseweb="menu"] {
+    div[data-baseweb="popover"], div[data-baseweb="menu"], ul[role="listbox"], div[role="listbox"] {
         background-color: #ffffff !important;
     }
     
-    div[data-baseweb="menu"] div, ul[data-baseweb="menu"] li, span[data-baseweb="tag"] {
+    div[data-baseweb="menu"] div, ul[role="listbox"] li, div[role="option"] {
         color: #0b132b !important;
         background-color: #ffffff !important;
+    }
+    
+    li[role="option"] {
+        background-color: #ffffff !important;
+        color: #0b132b !important;
+    }
+    
+    li[role="option"]:hover {
+        background-color: #f0ece1 !important;
+        color: #0b132b !important;
+    }
+
+    /* إصلاح حقول التاريخ (Date Input) */
+    div[data-baseweb="input"] {
+        background-color: #ffffff !important;
+        color: #0b132b !important;
+    }
+    div[data-baseweb="input"] input {
+        color: #0b132b !important;
+        background-color: #ffffff !important;
+    }
+
+    /* إصلاح الأزرار لتكون واضحة بخلفية كحلي داكن ونصوص بيضاء */
+    div.stButton > button {
+        background-color: #14213d !important;
+        color: #ffffff !important;
+        border: none !important;
+        font-weight: bold !important;
+    }
+    div.stButton > button:hover {
+        background-color: #c59b27 !important;
+        color: #0b132b !important;
     }
     
     /* القائمة الجانبية */
