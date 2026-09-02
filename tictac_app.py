@@ -172,7 +172,7 @@ def has_access(user, area):
 def logo_header():
     img = ""
     if LOGO_FILE.exists(): img = f'<img src="data:image/jpeg;base64,{base64.b64encode(LOGO_FILE.read_bytes()).decode()}">' 
-    st.markdown(f'<div class="logo-card">{img}<div><div class="logo-title">TIC TAC لخدمات الصيانة والتشغيل الخارجي</div><div class="logo-subtitle">External Maintenance Contracts & Facilities Service Provider</div></div></div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="logo-card">{img}<div><div class="logo-title">TIC TAC لصيانة المباني</div><div class="logo-subtitle"> For building Maintenance </div></div></div>', unsafe_allow_html=True)
 
 
 def exports(df, name, title=None):
@@ -217,7 +217,7 @@ with st.sidebar:
     menu = st.radio("القائمة الرئيسية", options or ["لوحة التحكم"])
 
 if menu == "لوحة التحكم":
-    st.title("لوحة التحكم لشركات الصيانة الخارجية")
+    st.title("لوحة التحكم لطلبات الصيانة ")
     vals = [
         q("SELECT COUNT(*) n FROM materials").iloc[0,0],
         q("SELECT COUNT(*) n FROM purchases").iloc[0,0],
