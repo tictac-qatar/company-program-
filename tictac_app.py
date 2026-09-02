@@ -140,21 +140,27 @@ UNITS = [
 ]
 
 # ------------------------------------------------------------
-# CSS - Force Pure White Background Everywhere
+# CSS - Force Pure White Background Everywhere (Direct Overrides)
 # ------------------------------------------------------------
 st.markdown("""
 <style>
-/* Force absolute white background across all main containers and app views */
-html, body, [data-testid="stAppViewContainer"], .stApp, 
-div.block-container, div[data-testid="stVerticalBlock"] {
-    color-scheme: light !important;
+/* Force pure white background on the entire app and view containers */
+.stApp, 
+[data-testid="stAppViewContainer"], 
+[data-testid="stHeader"], 
+[data-testid="stToolbar"], 
+div.block-container, 
+div[data-testid="stVerticalBlock"], 
+section[data-testid="stSidebar"],
+div.css-18e3th9, 
+div.css-1d391kg {
     background-color: #ffffff !important;
+    background: #ffffff !important;
     color: #111827 !important;
-    font-family: Tahoma, Arial, sans-serif !important;
 }
 
-/* Force Sidebar to be strictly white */
-section[data-testid="stSidebar"], section[data-testid="stSidebar"] > div {
+/* Force Sidebar background and all inner elements to white/dark text */
+section[data-testid="stSidebar"] {
     background-color: #ffffff !important;
     border-right: 1px solid #e5e7eb !important;
 }
@@ -163,13 +169,13 @@ section[data-testid="stSidebar"] * {
     -webkit-text-fill-color: #1f2937 !important;
 }
 
-/* Force all text elements to be dark and clear */
+/* Force text and labels to be clearly readable */
 h1, h2, h3, h4, h5, h6, label, p, span, div, .stMarkdown, .stText {
     color: #111827 !important;
     -webkit-text-fill-color: #111827 !important;
 }
 
-/* Force Inputs and TextAreas to be strictly white with dark text */
+/* Force all input fields, textareas, and select elements to be white */
 input, textarea, select,
 [data-baseweb="input"] input,
 [data-baseweb="base-input"] input,
@@ -190,7 +196,7 @@ div[data-baseweb="textarea"] {
     color: #111827 !important;
 }
 
-/* Fix popovers, dialogs, and dropdown menus */
+/* Popovers, menus, and dropdowns background correction */
 [data-baseweb="popover"],
 [data-baseweb="menu"],
 [data-baseweb="calendar"],
@@ -212,14 +218,14 @@ div[data-baseweb="textarea"] {
     -webkit-text-fill-color: #111827 !important;
 }
 
-/* Selected calendar day */
+/* Selected calendar day highlight */
 [data-baseweb="calendar"] button[aria-selected="true"] {
     background-color: #d97706 !important;
     color: #ffffff !important;
     -webkit-text-fill-color: #ffffff !important;
 }
 
-/* Buttons */
+/* Custom Buttons Styling */
 div.stButton > button {
     background-color: #1f2937 !important;
     color: #ffffff !important;
@@ -234,8 +240,9 @@ div.stButton > button:hover {
     border-color: #d97706 !important;
 }
 
+/* App Header & Card Styles */
 .main-header {
-    background-color: #ffffff;
+    background-color: #ffffff !important;
     padding: 18px 24px;
     border-radius: 14px;
     border: 1px solid #e5e7eb;
@@ -250,7 +257,7 @@ div.stButton > button:hover {
     margin-bottom: 8px;
 }
 .card {
-    background-color: #ffffff;
+    background-color: #ffffff !important;
     padding: 20px;
     border-radius: 12px;
     border: 1px solid #e5e7eb;
@@ -266,7 +273,7 @@ div.stButton > button:hover {
 
 
 # ------------------------------------------------------------
-# Database
+# Database Initialization & Management
 # ------------------------------------------------------------
 def get_conn():
     return sqlite3.connect(DB_FILE, check_same_thread=False)
@@ -422,7 +429,7 @@ today = date.today().isoformat()
 
 
 # ------------------------------------------------------------
-# Helpers
+# Helper Functions
 # ------------------------------------------------------------
 def query_df(sql, params=()):
     return pd.read_sql_query(sql, conn, params=params)
@@ -477,7 +484,7 @@ if not login():
 
 
 # ------------------------------------------------------------
-# Header / Logo
+# Header & Logo Display
 # ------------------------------------------------------------
 logo_html = ""
 if Path(LOGO_FILE).exists():
@@ -495,7 +502,7 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # ------------------------------------------------------------
-# Sidebar
+# Sidebar Navigation
 # ------------------------------------------------------------
 if st.sidebar.button("🚪 تسجيل الخروج", use_container_width=True):
     st.session_state.logged_in = False
@@ -515,7 +522,7 @@ menu = st.sidebar.radio("اختر القسم:", [
 
 
 # ============================================================
-# Dashboard
+# Dashboard Section
 # ============================================================
 if menu == "🏠 لوحة التحكم":
     st.markdown("## 📊 لوحة التحكم")
@@ -571,7 +578,7 @@ if menu == "🏠 لوحة التحكم":
 
 
 # ============================================================
-# Work Orders
+# Work Orders Section
 # ============================================================
 elif menu == "🛠️ أوامر الصيانة":
     st.markdown("## 🛠️ أوامر الصيانة وإدارة البلاغات")
@@ -667,7 +674,7 @@ elif menu == "🛠️ أوامر الصيانة":
 
 
 # ============================================================
-# Materials & Inventory
+# Materials & Inventory Section
 # ============================================================
 elif menu == "📦 المواد والمخزون":
     st.markdown("## 📦 إدارة مواد وقطع غيار صيانة المباني")
@@ -782,7 +789,7 @@ elif menu == "📦 المواد والمخزون":
 
 
 # ============================================================
-# Purchases
+# Purchases Section
 # ============================================================
 elif menu == "🛒 المشتريات":
     st.markdown("## 🛒 المشتريات وفواتير الموردين")
@@ -826,7 +833,7 @@ elif menu == "🛒 المشتريات":
 
 
 # ============================================================
-# Buildings / Clients / Contracts
+# Buildings, Clients & Contracts Section
 # ============================================================
 elif menu == "🏢 المباني والعملاء والعقود":
     st.markdown("## 🏢 المباني والعملاء والعقود")
@@ -908,7 +915,7 @@ elif menu == "🏢 المباني والعملاء والعقود":
 
 
 # ============================================================
-# Finance
+# Finance Section
 # ============================================================
 elif menu == "💰 الحسابات والمالية":
     st.markdown("## 💰 الإدارة المالية")
@@ -973,7 +980,7 @@ elif menu == "💰 الحسابات والمالية":
 
 
 # ============================================================
-# Employees & Attendance
+# Employees & Attendance Section
 # ============================================================
 elif menu == "👥 الموظفون والحضور":
     st.markdown("## 👥 شؤون الموظفين والحضور والغياب")
@@ -1076,7 +1083,7 @@ elif menu == "👥 الموظفون والحضور":
 
 
 # ============================================================
-# Reports
+# Reports Section
 # ============================================================
 elif menu == "📊 التقارير":
     st.markdown("## 📊 التقارير الشاملة")
