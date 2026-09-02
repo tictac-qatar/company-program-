@@ -5,17 +5,17 @@ import pandas as pd
 
 st.set_page_config(page_title="Tic Tac for Building Maintenance", layout="wide")
 
-# تعديل شامل ونهائي لقوائم الاختيار المنبثقة، حقول التاريخ، والأزرار
+# إزالة كامل الخلفيات الداكنة وفرض اللون الأبيض والنصوص الواضحة على كافة العناصر
 st.markdown("""
     <style>
-    /* فرض خلفية فاتحة ونصوص كحلي داكن على التطبيق بأكمله */
+    /* خلفية عامة فاتحة */
     .stApp {
         background-color: #f7f4ed !important;
         color: #0b132b !important;
         font-family: Tahoma, sans-serif !important;
     }
     
-    /* إجبار كافة النصوص والعناوين والتسميات على اللون الكحلي الداكن */
+    /* فرض النصوص الكحلية على العناوين والتسميات */
     h1, h2, h3, h4, h5, h6, label, p, span, div, 
     .stSelectbox label, .stTextInput label, .stTextArea label, .stNumberInput label, 
     .stDateInput label, .stRadio label, .stCheckbox label {
@@ -23,30 +23,22 @@ st.markdown("""
         font-weight: bold !important;
     }
     
-    /* حقول الإدخال النصية */
-    input, textarea {
+    /* إلغاء أي خلفية داكنة في حقول النصوص وتثبيت اللون الأبيض والنصوص الداكنة */
+    input, textarea, div[data-baseweb="input"], div[data-baseweb="input"] input {
         background-color: #ffffff !important;
         color: #0b132b !important;
     }
     
-    /* إصلاح شامل للقوائم المنسدلة وعناصر الاختيار المنبثقة (BaseWeb Popover & Menu & Listbox) */
-    div[data-baseweb="select"] > div, div[data-baseweb="select"] {
-        background-color: #ffffff !important;
-        color: #0b132b !important;
-    }
-    
+    /* إلغاء الخلفيات الداكنة للقوائم المنسدلة وخيارات الاختيار تماماً */
+    div[data-baseweb="select"] > div, div[data-baseweb="select"],
     div[data-baseweb="popover"], div[data-baseweb="menu"], ul[role="listbox"], div[role="listbox"] {
         background-color: #ffffff !important;
+        color: #0b132b !important;
     }
     
-    div[data-baseweb="menu"] div, ul[role="listbox"] li, div[role="option"] {
+    div[data-baseweb="menu"] div, ul[role="listbox"] li, div[role="option"], li[role="option"] {
         color: #0b132b !important;
         background-color: #ffffff !important;
-    }
-    
-    li[role="option"] {
-        background-color: #ffffff !important;
-        color: #0b132b !important;
     }
     
     li[role="option"]:hover {
@@ -54,17 +46,7 @@ st.markdown("""
         color: #0b132b !important;
     }
 
-    /* إصلاح حقول التاريخ (Date Input) */
-    div[data-baseweb="input"] {
-        background-color: #ffffff !important;
-        color: #0b132b !important;
-    }
-    div[data-baseweb="input"] input {
-        color: #0b132b !important;
-        background-color: #ffffff !important;
-    }
-
-    /* إصلاح الأزرار لتكون واضحة بخلفية كحلي داكن ونصوص بيضاء */
+    /* إلغاء الخلفيات الداكنة للأزرار وجعلها واضحة */
     div.stButton > button {
         background-color: #14213d !important;
         color: #ffffff !important;
@@ -124,7 +106,7 @@ st.markdown("""
         box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
     
-    /* كروت وحاويات الإدخال */
+    /* كروت وحاويات الإدخال البيضاء بالكامل */
     .card-container {
         background-color: #ffffff !important;
         padding: 25px !important;
