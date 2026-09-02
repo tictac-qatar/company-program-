@@ -58,7 +58,6 @@ section[data-testid="stSidebar"] {{ background:linear-gradient(180deg, {NAVY_DAR
 section[data-testid="stSidebar"] * {{ color:#fff !important; }}
 [data-testid="stHeader"] {{ background:transparent; }}
 
-/* إخفاء زر إظهار كلمة المرور الخاص بالمتصفح لتجنب تداخل النصوص مثل sibility */
 input[type="password"]::-webkit-password-toggle-button,
 input[type="password"]::-webkit-credentials-auto-fill-button,
 input[type="password"]::-ms-reveal,
@@ -106,6 +105,10 @@ def conn():
     return c
 
 
+def hash_password(value):
+    return hashlib.pbkdf2_hmac("sha256", value.encode(), b"tictac-v4", 120000).hex()
+
+
 def init_db():
     with conn() as c:
         c.executescript("""
@@ -128,10 +131,6 @@ def init_db():
         cur = c.execute("SELECT COUNT(*) FROM users")
         if cur.fetchone()[0] == 0:
             c.execute("INSERT INTO users(username,password_hash,full_name,role,permissions,created_at) VALUES(?,?,?,?,?,?)", ("admin", hash_password("ChangeMe@123"), "مدير النظام", "مدير النظام", "all", datetime.now().isoformat()))
-
-
-def hash_password(value):
-    return hashlib.pbkdf2_hmac("sha256", value.encode(), b"tictac-v4", 120000).hex()
 
 
 def q(sql, params=()):
