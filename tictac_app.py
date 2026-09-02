@@ -1,17 +1,16 @@
 import streamlit as st
 import sqlite3
-from datetime import datetime, timedelta
+from datetime import datetime
 import pandas as pd
 
 st.set_page_config(page_title="Tic Tac for Building Maintenance", layout="wide")
 
-# تخصيص التصميم، الخلفية، ووضوح الخطوط بناءً على الهوية البصرية
+# تصميم نظيف وواضوح تام للخطوط والخلفيات البيضاء
 st.markdown("""
     <style>
-    /* خلفية الصفحة العامة ووضوح الخطوط */
     .stApp {
-        background-color: #f7f4ed;
-        color: #0b132b;
+        background-color: #fbf9f5;
+        color: #111111;
         font-family: Tahoma, sans-serif;
     }
     
@@ -27,53 +26,52 @@ st.markdown("""
     }
     .main-header h1 {
         color: #c59b27;
-        font-size: 28px;
+        font-size: 26px;
         margin: 0;
         font-weight: bold;
     }
     .main-header p {
-        color: #e5e5e5;
+        color: #ffffff;
         margin: 5px 0 0 0;
-        font-size: 15px;
+        font-size: 14px;
     }
     
-    /* تنسيق صندوق تسجيل الدخول */
+    /* صندوق تسجيل الدخول */
     .login-box {
         max-width: 400px;
-        margin: 50px auto;
+        margin: 40px auto;
         padding: 25px;
         background-color: #ffffff;
         border-radius: 10px;
         border-top: 5px solid #c59b27;
-        border: 1px solid #e0d6c3;
+        border: 1px solid #ddd;
         text-align: center;
         box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
     
-    /* تحسين وضوح النصوص والعناوين داخل التطبيق */
+    /* وضوح النصوص في الحقول */
     h1, h2, h3, h4, h5, h6, label, .stRadio div, .stSelectbox label, .stTextInput label, .stTextArea label, .stNumberInput label {
-        color: #0b132b !important;
+        color: #111111 !important;
         font-weight: bold !important;
     }
     
-    /* تنسيق الكروت والأقسام */
-    .section-card {
+    /* كروت الإدخال */
+    .card-container {
         background-color: #ffffff;
         padding: 20px;
         border-radius: 10px;
         border: 1px solid #e0d6c3;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
         margin-bottom: 20px;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# بيانات الدخول الخاصة بك
+# بيانات الدخول
 USERS = {
-    "Tictac.qatar": "Azoz@123"
+    "tictac.qatar": "Azoz@123"
 }
 
-# دالة التحقق من تسجيل الدخول
 def check_login():
     if "logged_in" not in st.session_state:
         st.session_state.logged_in = False
@@ -82,7 +80,7 @@ def check_login():
         st.markdown("""
             <div class="login-box">
                 <h2 style="color: #14213d !important;">TIC TAC</h2>
-                <p style="color: #444444 !important;">نظام صيانة المباني - تسجيل الدخول</p>
+                <p style="color: #555555 !important;">نظام صيانة المباني - تسجيل الدخول</p>
             </div>
         """, unsafe_allow_html=True)
         
@@ -94,7 +92,6 @@ def check_login():
             if st.button("تسجيل الدخول", use_container_width=True):
                 if username in USERS and USERS[username] == password:
                     st.session_state.logged_in = True
-                    st.session_state.username = username
                     st.rerun()
                 else:
                     st.error("اسم المستخدم أو كلمة المرور غير صحيحة.")
@@ -104,12 +101,37 @@ def check_login():
 if not check_login():
     st.stop()
 
-# --- واجهة البرنامج بعد تسجيل الدخول ---
+# قاعدة البيانات الشاملة
+def init_db():
+    conn = sqlite3.connect('tictac_pro.db', check_same_thread=False)
+    cursor = conn.cursor()
+    # جدول مهام الصيانة
+    cursor.execute('''CREATE TABLE IF NOT EXISTS tasks (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT, building TEXT, location TEXT, 
+                        category TEXT, description TEXT, priority TEXT, technician TEXT, status TEXT, date TEXT)''')
+    # جدول المعاملات المالية
+    cursor.execute('''CREATE TABLE IF NOT EXISTS finance (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT, category TEXT, description TEXT, amount REAL, date TEXT)''')
+    # جدول المشتريات
+    cursor.execute('''CREATE TABLE IF NOT EXISTS purchases (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT, item_name TEXT, category TEXT, quantity INTEGER, price REAL, supplier TEXT, date TEXT)''')
+    # جدول الموظفين
+    cursor.execute('''CREATE TABLE IF NOT EXISTS employees (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, qatari_id TEXT, role TEXT)''')
+    # جدول الحضور والغياب
+    cursor.execute('''CREATE TABLE IF NOT EXISTS attendance (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT, emp_name TEXT, status TEXT, date TEXT)''')
+    conn.commit()
+    return conn
 
+conn = init_db()
+cursor = conn.cursor()
+
+# الهيدر
 st.markdown("""
     <div class="main-header">
         <h1>TIC TAC لصيانة المباني</h1>
-        <p>نظام إدارة طلبات الصيانة، المهام، والمشتريات والحسابات</p>
+        <p>نظام الإدارة الشامل - التشغيل، المشتريات، الحسابات، وشؤون الموظفين</p>
     </div>
 """, unsafe_allow_html=True)
 
@@ -117,129 +139,232 @@ if st.sidebar.button("تسجيل الخروج"):
     st.session_state.logged_in = False
     st.rerun()
 
-def init_db():
-    conn = sqlite3.connect('tictac_full.db', check_same_thread=False)
-    cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS tasks (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            building_name TEXT,
-            location TEXT,
-            issue_desc TEXT,
-            priority TEXT,
-            assigned_to TEXT,
-            status TEXT,
-            date TEXT
-        )
-    ''')
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS transactions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            type TEXT,
-            category TEXT,
-            description TEXT,
-            amount REAL,
-            date TEXT
-        )
-    ''')
-    conn.commit()
-    return conn
+# القائمة الجانبية للفصل التام بين الأقسام
+st.sidebar.markdown("### 🗂️ أقسام النظام")
+menu = st.sidebar.radio("اختر القسم:", [
+    "🛠️ إدخال مهام الصيانة", 
+    "💰 الإدخال المالي", 
+    "🛒 إدخال المشتريات", 
+    "👥 شؤون الموظفين (حضور وغياب)", 
+    "📊 التقارير الشاملة"
+])
 
-conn = init_db()
-cursor = conn.cursor()
-
-# --- إعادة ترتيب الشاشة: خيارات الإدخال أولاً في الشاشة الرئيسية ---
-st.markdown("### 📝 لوحة الإدخال والتشغيل السريع")
-
-col_input1, col_input2 = st.columns(2)
-
-with col_input1:
+# -------------------------------------------------------------
+# 1. إدخال مهام الصيانة
+# -------------------------------------------------------------
+if menu == "🛠️ إدخال مهام الصيانة":
+    st.markdown("### 🛠️ تسجيل وتفصيل مهام صيانة المباني")
     with st.container():
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        st.subheader("إضافة أمر صيانة جديد")
-        building_name = st.text_input("اسم المبنى / المشروع")
-        location = st.text_input("رقم الغرفة / الطابق / الموقع")
-        issue_desc = st.text_area("وصف العطل أو المطلوب تنفيذه")
-        priority = st.selectbox("الأولوية", ["عادي", "متوسط", "طوارئ قصوى"])
-        assigned_to = st.text_input("الفني المسؤول / المقاول")
-        task_status = st.selectbox("حالة الطلب", ["جديد", "قيد العمل عليه", "مكتمل"])
-        task_date = st.date_input("تاريخ الطلب", datetime.now()).strftime("%Y-%m-%d")
+        st.markdown('<div class="card-container">', unsafe_allow_html=True)
+        col1, col2 = st.columns(2)
+        with col1:
+            building = st.text_input("اسم المبنى / المشروع")
+            location = st.text_input("رقم الغرفة / الطابق / الموقع")
+            m_category = st.selectbox("تخصص الصيانة", [
+                "أعمال الكهرباء والإنارة", 
+                "أعمال السباكة والصرف الصحي", 
+                "أنظمة التكييف والتبريد (HVAC)", 
+                "الأبواب، الأقفال، والواجهات", 
+                "أنظمة الإنذار ومكافحة الحريق", 
+                "أعمال المدني والدهانات العامة"
+            ])
+            priority = st.selectbox("الأولوية", ["عادي", "متوسط", "طوارئ قصوى"])
+        with col2:
+            technician = st.text_input("الفني المسؤول / المقاول المكلف")
+            status = st.selectbox("حالة المهمة", ["جديد", "قيد العمل عليه", "مكتمل", "مؤجل"])
+            date = st.date_input("تاريخ الأمر", datetime.now()).strftime("%Y-%m-%d")
+            description = st.text_area("وصف تفصيلي للعطل أو الإصلاح المطلوب")
 
         if st.button("حفظ مهمة الصيانة", use_container_width=True):
-            if building_name and issue_desc:
-                cursor.execute("INSERT INTO tasks (building_name, location, issue_desc, priority, assigned_to, status, date) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                               (building_name, location, issue_desc, priority, assigned_to, task_status, task_date))
+            if building and description:
+                cursor.execute("INSERT INTO tasks (building, location, category, description, priority, technician, status, date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                               (building, location, m_category, description, priority, technician, status, date))
                 conn.commit()
                 st.success("تم حفظ مهمة الصيانة بنجاح!")
-                st.rerun()
             else:
-                st.error("الرجاء إدخال اسم المبنى ووصف الطلب على الأقل.")
+                st.error("الرجاء إدخال اسم المبنى ووصف العطل على الأقل.")
         st.markdown('</div>', unsafe_allow_html=True)
 
-with col_input2:
+# -------------------------------------------------------------
+# 2. الإدخال المالي
+# -------------------------------------------------------------
+elif menu == "💰 الإدخال المالي":
+    st.markdown("### 💰 الإدارة المالية وعقود الصيانة")
     with st.container():
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        st.subheader("تسجيل معاملة مالية / مشتريات")
-        t_type_label = st.selectbox("نوع المعاملة", ["إيراد (عقد صيانة / خدمة)", "مصروف / مشتريات قطع غيار"])
-        t_type = "revenue" if "إيراد" in t_type_label else "expense"
-
-        category = st.selectbox("التصنيف", [
-            "عقد صيانة دورية", 
-            "إصلاح طارئ", 
-            "شراء قطع غيار ومواد", 
-            "أجور عمالة والفنيين", 
-            "مصروفات تشغيلية"
-        ])
-
-        description = st.text_input("الوصف / اسم العميل أو المورد")
-        amount = st.number_input("المبلغ (ر.ق / ر.س)", min_value=0.0, format="%.2f")
-        date_str = st.date_input("تاريخ المعاملة", datetime.now()).strftime("%Y-%m-%d")
+        st.markdown('<div class="card-container">', unsafe_allow_html=True)
+        col1, col2 = st.columns(2)
+        with col1:
+            f_type = st.selectbox("نوع المعاملة", ["إيراد (قبض)", "مصروف (دفع)"])
+            category = st.selectbox("التصنيف المالي", [
+                "عقد صيانة دورية سنوي/شهري", 
+                "دفعة إصلاح طارئ", 
+                "أجور فنيين وعمالة", 
+                "رسوم تراخيص وتصاريح حكومية", 
+                "غرامات أو خصومات تشغيلية", 
+                "إيرادات خدمات إضافية للمباني"
+            ])
+            description = st.text_input("بيان المعاملة / اسم العميل أو المستفيد")
+        with col2:
+            amount = st.number_input("المبلغ (ر.ق / ر.س)", min_value=0.0, format="%.2f")
+            date = st.date_input("تاريخ المعاملة المالية", datetime.now()).strftime("%Y-%m-%d")
 
         if st.button("حفظ المعاملة المالية", use_container_width=True):
             if description and amount > 0:
-                cursor.execute("INSERT INTO transactions (type, category, description, amount, date) VALUES (?, ?, ?, ?, ?)",
-                               (t_type, category, description, amount, date_str))
+                t_val = "revenue" if "إيراد" in f_type else "expense"
+                cursor.execute("INSERT INTO finance (type, category, description, amount, date) VALUES (?, ?, ?, ?, ?)",
+                               (t_val, category, description, amount, date))
                 conn.commit()
-                st.success("تم حفظ المعاملة المالية بنجاح!")
-                st.rerun()
+                st.success("تم تسجيل المعاملة المالية بنجاح!")
             else:
-                st.error("الرجاء إدخال الوصف والمبلغ بشكل صحيح.")
+                st.error("الرجاء إدخال البيان والمبلغ الصحيح.")
         st.markdown('</div>', unsafe_allow_html=True)
 
-st.markdown("---")
+# -------------------------------------------------------------
+# 3. إدخال المشتريات
+# -------------------------------------------------------------
+elif menu == "🛒 إدخال المشتريات":
+    st.markdown("### 🛒 مشتريات قطع الغيار ومواد التشغيل")
+    with st.container():
+        st.markdown('<div class="card-container">', unsafe_allow_html=True)
+        col1, col2 = st.columns(2)
+        with col1:
+            item_name = st.text_input("اسم الصنف أو القطعة المطلوبة")
+            p_category = st.selectbox("قسم المشتريات", [
+                "قطع غيار تكييف وتبريد", 
+                "مستلزمات وعمليات سباكة", 
+                "أسلاك ومفاتيح وأدوات كهرباء", 
+                "مواد دهان وأدوات نجارة", 
+                "معدات أمن وسلامة مهنية"
+            ])
+            quantity = st.number_input("الكمية", min_value=1, value=1)
+        with col2:
+            price = st.number_input("إجمالي التكلفة / السعر", min_value=0.0, format="%.2f")
+            supplier = st.text_input("اسم المورد / المحل")
+            date = st.date_input("تاريخ الشراء", datetime.now()).strftime("%Y-%m-%d")
 
-# --- التقارير وسجلات المتابعة في الجانب (أو بتبويبات واضحة ومفصولة) ---
-st.markdown("### 📊 التقارير، السجلات، والمتابعة المالية")
+        if st.button("حفظ فاتورة المشتريات", use_container_width=True):
+            if item_name and price > 0:
+                cursor.execute("INSERT INTO purchases (item_name, category, quantity, price, supplier, date) VALUES (?, ?, ?, ?, ?, ?)",
+                               (item_name, p_category, quantity, price, supplier, date))
+                conn.commit()
+                st.success("تم حفظ المشتريات بنجاح وإضافتها للنظام!")
+            else:
+                st.error("الرجاء إدخال اسم الصنف والسعر.")
+        st.markdown('</div>', unsafe_allow_html=True)
 
-tab1, tab2 = st.tabs(["سجل طلبات وأعمال الصيانة", "التقارير المالية والمشتريات"])
-
-with tab1:
-    cursor.execute("SELECT id, building_name, location, issue_desc, priority, assigned_to, status, date FROM tasks ORDER BY id DESC")
-    tasks_rows = cursor.fetchall()
+# -------------------------------------------------------------
+# 4. شؤون الموظفين (حضور وغياب)
+# -------------------------------------------------------------
+elif menu == "👥 شؤون الموظفين (حضور وغياب)":
+    st.markdown("### 👥 إدارة الموظفين وسجل الحضور والغياب")
     
-    if tasks_rows:
-        df_tasks = pd.DataFrame(tasks_rows, columns=["م", "المبنى", "الموقع", "الوصف", "الأولوية", "المسؤول", "الحالة", "التاريخ"])
-        st.dataframe(df_tasks, use_container_width=True)
-    else:
-        st.info("لا توجد طلبات صيانة مسجلة حتى الآن.")
-
-with tab2:
-    cursor.execute("SELECT id, type, category, description, amount, date FROM transactions ORDER BY date DESC")
-    trans_rows = cursor.fetchall()
+    tab_emp1, tab_emp2 = st.tabs(["إضافة موظفين جدد", "تسجيل الحضور والغياب اليومي"])
     
-    total_rev = sum([r[4] for r in trans_rows if r[1] == 'revenue'])
-    total_exp = sum([r[4] for r in trans_rows if r[1] == 'expense'])
-    net_profit = total_rev - total_exp
+    with tab_emp1:
+        st.markdown('<div class="card-container">', unsafe_allow_html=True)
+        st.subheader("تسجيل موظف جديد في النظام")
+        emp_name = st.text_input("اسم الموظف الرباعي")
+        qatari_id = st.text_input("رقم البطاقة الشخصية / الإقامة")
+        role = st.selectbox("المسمى الوظيفي", ["فني تكييف", "فني كهرباء", "فني سباكة", "مشرف مباني", "عامل صيانة عامة"])
+        
+        if st.button("إضافة الموظف للقاعدة", use_container_width=True):
+            if emp_name and qatari_id:
+                cursor.execute("INSERT INTO employees (name, qatari_id, role) VALUES (?, ?, ?)", (emp_name, qatari_id, role))
+                conn.commit()
+                st.success(f"تمت إضافة الموظف ({emp_name}) بنجاح!")
+            else:
+                st.error("الرجاء إدخال اسم الموظف ورقم البطاقة الشخصية.")
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+    with tab_emp2:
+        st.markdown('<div class="card-container">', unsafe_allow_html=True)
+        st.subheader("سجل الحضور والغياب اليومي")
+        
+        cursor.execute("SELECT name FROM employees")
+        emps = [row[0] for row in cursor.fetchall()]
+        
+        if emps:
+            att_date = st.date_input("تاريخ اليوم", datetime.now()).strftime("%Y-%m-%d")
+            selected_emp = st.selectbox("اختر الموظف", emps)
+            att_status = st.selectbox("الحالة", ["حاضر", "غائب", "إجازة", "مهمة خارجية"])
+            
+            if st.button("حفظ حالة الحضور", use_container_width=True):
+                cursor.execute("INSERT INTO attendance (emp_name, status, date) VALUES (?, ?, ?)", (selected_emp, att_status, att_date))
+                conn.commit()
+                st.success("تم تسجيل الحالة بنجاح!")
+        else:
+            st.info("لا يوجد موظفون مسجلون حالياً. يرجى إضافتهم من تبويب (إضافة موظفين جدد) أولاً.")
+        st.markdown('</div>', unsafe_allow_html=True)
 
-    col_m1, col_m2, col_m3 = st.columns(3)
-    col_m1.metric("إجمالي الإيرادات", f"{total_rev:,.2f}")
-    col_m2.metric("إجمالي المصروفات/المشتريات", f"{total_exp:,.2f}")
-    col_m3.metric("صافي الربح", f"{net_profit:,.2f}")
-
+# -------------------------------------------------------------
+# 5. التقارير الشاملة (معزولة بالكامل)
+# -------------------------------------------------------------
+elif menu == "📊 التقارير الشاملة":
+    st.markdown("### 📊 التقارير والسجلات التفصيلية الشاملة")
+    
+    rep_tab = st.selectbox("اختر التقرير المراد عرضه:", [
+        "سجل مهام الصيانة للمباني", 
+        "التقرير المالي وحساب الأرباح", 
+        "سجل المشتريات", 
+        "قائمة الموظفين وسجل الحضور والغياب"
+    ])
+    
     st.markdown("---")
-    if trans_rows:
-        df_trans = pd.DataFrame(trans_rows, columns=["م", "النوع", "التصنيف", "الوصف", "المبلغ", "التاريخ"])
-        df_trans["النوع"] = df_trans["النوع"].apply(lambda x: "إيراد" if x == 'revenue' else "مصروف/شراء")
-        st.dataframe(df_trans, use_container_width=True)
-    else:
-        st.info("لا توجد معاملات مالية مسجلة حتى الآن.")
+    
+    if rep_tab == "سجل مهام الصيانة للمباني":
+        cursor.execute("SELECT id, building, location, category, description, priority, technician, status, date FROM tasks ORDER BY id DESC")
+        rows = cursor.fetchall()
+        if rows:
+            df = pd.DataFrame(rows, columns=["م", "المبنى", "الموقع", "التخصص", "الوصف", "الأولوية", "المسؤول", "الحالة", "التاريخ"])
+            st.dataframe(df, use_container_width=True)
+        else:
+            st.info("لا توجد مهام صيانة مسجلة.")
+            
+    elif rep_tab == "التقرير المالي وحساب الأرباح":
+        cursor.execute("SELECT id, type, category, description, amount, date FROM finance ORDER BY date DESC")
+        rows = cursor.fetchall()
+        
+        rev = sum([r[4] for r in rows if r[1] == 'revenue'])
+        exp = sum([r[4] for r in rows if r[1] == 'expense'])
+        net = rev - exp
+        
+        c1, c2, c3 = st.columns(3)
+        c1.metric("إجمالي الإيرادات", f"{rev:,.2f}")
+        c2.metric("إجمالي المصروفات", f"{exp:,.2f}")
+        c3.metric("صافي الربح", f"{net:,.2f}")
+        
+        st.markdown("---")
+        if rows:
+            df = pd.DataFrame(rows, columns=["م", "النوع", "التصنيف", "البيان", "المبلغ", "التاريخ"])
+            df["النوع"] = df["النوع"].apply(lambda x: "إيراد" if x == 'revenue' else "مصروف")
+            st.dataframe(df, use_container_width=True)
+        else:
+            st.info("لا توجد معاملات مالية مسجلة.")
+            
+    elif rep_tab == "سجل المشتريات":
+        cursor.execute("SELECT id, item_name, category, quantity, price, supplier, date FROM purchases ORDER BY id DESC")
+        rows = cursor.fetchall()
+        if rows:
+            df = pd.DataFrame(rows, columns=["م", "الصنف", "القسم", "الكمية", "السعر", "المورد", "التاريخ"])
+            st.dataframe(df, use_container_width=True)
+        else:
+            st.info("لا توجد فواتير مشتريات مسجلة.")
+            
+    elif rep_tab == "قائمة الموظفين وسجل الحضور والغياب":
+        st.subheader("قائمة الموظفين المسجلين")
+        cursor.execute("SELECT id, name, qatari_id, role FROM employees")
+        e_rows = cursor.fetchall()
+        if e_rows:
+            df_e = pd.DataFrame(e_rows, columns=["م", "اسم الموظف", "رقم البطاقة الشخصية", "المسمى الوظيفي"])
+            st.dataframe(df_e, use_container_width=True)
+        else:
+            st.info("لا يوجد موظفون مسجلون.")
+            
+        st.subheader("سجل الحضور والغياب اليومي")
+        cursor.execute("SELECT id, emp_name, status, date FROM attendance ORDER BY id DESC")
+        a_rows = cursor.fetchall()
+        if a_rows:
+            df_a = pd.DataFrame(a_rows, columns=["م", "اسم الموظف", "الحالة", "التاريخ"])
+            st.dataframe(df_a, use_container_width=True)
+        else:
+            st.info("لا توجد سجلات حضور مسجلة.")
