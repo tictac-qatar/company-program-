@@ -140,7 +140,7 @@ UNITS = [
 ]
 
 # ------------------------------------------------------------
-# CSS & JS - Force Absolute Light Theme & Override Mobile Dark System
+# CSS & JS - Force Absolute Light Theme & Override Dark Mode
 # ------------------------------------------------------------
 st.markdown("""
 <style>
@@ -158,21 +158,28 @@ h1, h2, h3, h4, h5, h6, label, p, span, div, .stMarkdown, .stText {
     -webkit-text-fill-color: #111827 !important;
 }
 
-/* Inputs, text areas, selection boxes, passwords */
+/* Force Inputs and TextAreas to be strictly white with dark text */
 input, textarea, select,
 [data-baseweb="input"] input,
 [data-baseweb="base-input"] input,
 .stTextInput input,
 .stPasswordInput input,
-[data-baseweb="input"],
-[data-baseweb="select"] > div {
-    background-color: #f9fafb !important;
+.stTextArea textarea {
+    background-color: #ffffff !important;
     color: #111827 !important;
     -webkit-text-fill-color: #111827 !important;
     border-color: #d1d5db !important;
 }
 
-/* Fix mobile popovers, dialogs, calendars, and dropdown menus */
+[data-baseweb="input"],
+[data-baseweb="base-input"],
+[data-baseweb="select"] > div,
+div[data-baseweb="textarea"] {
+    background-color: #ffffff !important;
+    color: #111827 !important;
+}
+
+/* Fix popovers, dialogs, and dropdown menus */
 [data-baseweb="popover"],
 [data-baseweb="menu"],
 [data-baseweb="calendar"],
@@ -254,12 +261,6 @@ section[data-testid="stSidebar"] * {
     font-size: 13px;
 }
 </style>
-
-<script>
-/* Force Light mode and remove any dark theme attributes injected by mobile browser */
-document.documentElement.style.colorScheme = 'light';
-document.documentElement.setAttribute('data-theme', 'light');
-</script>
 """, unsafe_allow_html=True)
 
 
@@ -409,57 +410,6 @@ def init_db():
         notes TEXT
     )
     """)
-
-    migrations = {
-        "tasks": {
-            "client": "TEXT",
-            "job_type": "TEXT",
-            "planned_date": "TEXT",
-            "completion_date": "TEXT",
-            "estimated_cost": "REAL DEFAULT 0",
-            "actual_cost": "REAL DEFAULT 0",
-            "materials_used": "TEXT",
-            "notes": "TEXT",
-        },
-        "purchases": {
-            "unit": "TEXT",
-            "invoice_no": "TEXT",
-            "notes": "TEXT",
-        },
-        "employees": {
-            "phone": "TEXT",
-            "department": "TEXT",
-            "hire_date": "TEXT",
-            "salary": "REAL DEFAULT 0",
-            "status": "TEXT DEFAULT 'على رأس العمل'",
-            "notes": "TEXT",
-        },
-        "attendance": {
-            "emp_id": "INTEGER",
-            "notes": "TEXT",
-        },
-        "finance": {
-            "reference": "TEXT",
-        },
-    }
-
-    for table, columns in migrations.items():
-        existing = {
-            row[1] for row in cur.execute(f"PRAGMA table_info({table})").fetchall()
-        }
-        for column, definition in columns.items():
-            if column not in existing:
-                cur.execute(
-                    f"ALTER TABLE {table} ADD COLUMN {column} {definition}"
-                )
-
-    if "status" in {
-        row[1] for row in cur.execute("PRAGMA table_info(employees)").fetchall()
-    }:
-        cur.execute(
-            "UPDATE employees SET status='على رأس العمل' "
-            "WHERE status IS NULL OR TRIM(status)=''"
-        )
 
     conn.commit()
     return conn
@@ -1188,7 +1138,7 @@ elif menu == "📊 التقارير":
         df = query_df("SELECT * FROM employees ORDER BY id DESC")
         st.dataframe(df, use_container_width=True)
         if not df.empty:
-            csv_download(df, "tictac_report_employees.csv")
+            csv_download(df, "tict_report_employees.csv")
 
     elif report == "الحضور والغياب":
         df = query_df("SELECT * FROM attendance ORDER BY date DESC,id DESC")
