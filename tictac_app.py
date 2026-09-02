@@ -5,6 +5,54 @@ import pandas as pd
 
 st.set_page_config(page_title="Tic Tac for Building Maintenance", layout="wide")
 
+# بيانات الدخول الجديدة الخاصة بك
+USERS = {
+    "tictac.qatar": "Azoz@123"
+}
+
+# دالة التحقق من تسجيل الدخول
+def check_login():
+    if "logged_in" not in st.session_state:
+        st.session_state.logged_in = False
+
+    if not st.session_state.logged_in:
+        st.markdown("""
+            <style>
+            .login-box {
+                max-width: 400px;
+                margin: 50px auto;
+                padding: 20px;
+                background-color: #14213d;
+                border-radius: 10px;
+                border-top: 4px solid #c59b27;
+                text-align: center;
+                color: white;
+            }
+            </style>
+            <div class="login-box">
+                <h2>تسجيل الدخول لنظام TIC TAC</h2>
+                <p>الرجاء إدخال بيانات الاعتماد للمتابعة</p>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        username = st.text_input("اسم المستخدم")
+        password = st.text_input("كلمة المرور", type="password")
+        
+        if st.button("دخول"):
+            if username in USERS and USERS[username] == password:
+                st.session_state.logged_in = True
+                st.session_state.username = username
+                st.rerun()
+            else:
+                st.error("اسم المستخدم أو كلمة المرور غير صحيحة.")
+        return False
+    return True
+
+if not check_login():
+    st.stop()
+
+# --- واجهة البرنامج بعد تسجيل الدخول ---
+
 st.markdown("""
     <style>
     .main-header {
@@ -32,11 +80,13 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# إعداد قاعدة البيانات الشاملة
+if st.sidebar.button("تسجيل الخروج"):
+    st.session_state.logged_in = False
+    st.rerun()
+
 def init_db():
     conn = sqlite3.connect('tictac_full.db', check_same_thread=False)
     cursor = conn.cursor()
-    # جدول طلبات الصيانة والمهام
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS tasks (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -49,7 +99,6 @@ def init_db():
             date TEXT
         )
     ''')
-    # جدول المعاملات المالية والمشتريات
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS transactions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -66,7 +115,6 @@ def init_db():
 conn = init_db()
 cursor = conn.cursor()
 
-# القائمة الجانبية للتسجيل (مهام أو مالية)
 st.sidebar.header("لوحة الإدخال والتشغيل")
 section_choice = st.sidebar.radio("اختر نوع الإدخال:", ["تسجيل طلب / مهمة صيانة", "تسجيل معاملة مالية / مشتريات"])
 
@@ -77,7 +125,7 @@ if section_choice == "تسجيل طلب / مهمة صيانة":
     issue_desc = st.sidebar.text_area("وصف العطل أو المطلوب تنفيذه")
     priority = st.sidebar.selectbox("الأولوية", ["عادي", "متوسط", "طوارئ قصوى"])
     assigned_to = st.sidebar.text_input("الفني المسؤول / المقاول")
-    task_status = st.sidebar.selectbox("حالة الطلب", ["جديد", "قجار العمل عليه", "مكتمل"])
+    task_status = st.sidebar.selectbox("حالة الطلب", ["جديد", "قيد العمل عليه", "مكتمل"])
     task_date = st.sidebar.date_input("تاريخ الطلب", datetime.now()).strftime("%Y-%m-%d")
 
     if st.sidebar.button("حفظ مهمة الصيانة"):
@@ -117,7 +165,6 @@ else:
         else:
             st.sidebar.error("الرجاء إدخال الوصف والمبلغ بشكل صحيح.")
 
-# الشاشة الرئيسية لعرض البيانات والأقسام
 tab1, tab2 = st.tabs(["إدارة ومتابعة طلبات الصيانة", "التقارير المالية والمشتريات"])
 
 with tab1:
