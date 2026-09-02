@@ -16,7 +16,7 @@ st.set_page_config(
 )
 
 DB_FILE = "tictac_pro.db"
-LOGO_FILE = "tictac_logo.jpeg"
+LOGO_FILE = "IMG_7482.png"
 
 # ------------------------------------------------------------
 # Login - kept in the same simple username/password style
