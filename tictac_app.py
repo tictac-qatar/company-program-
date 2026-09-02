@@ -168,7 +168,7 @@ def login():
     if LOGO_FILE.exists():
         img_html = f'<div style="text-align: center; margin-bottom: 12px;"><img src="data:image/jpeg;base64,{base64.b64encode(LOGO_FILE.read_bytes()).decode()}" style="max-height: 90px; border-radius: 8px;"></div>'
     
-    st.markdown(f'{img_html}<div class="logo-card"><div class="logo-title">TIC TAC<br><span class="logo-subtitle">نظام إدارة خدمات وصيانة عقود العملاء الخارجية</span></div></div>', unsafe_allow_html=True)
+    st.markdown(f'{img_html}<div class="logo-card"><div class="logo-title">TIC TAC<br><span class="logo-subtitle">       النظام التشغيلى      </span></div></div>', unsafe_allow_html=True)
     
     _, mid, _ = st.columns([1, 2, 1])
     with mid:
